@@ -42,6 +42,7 @@ app.get('/',autologin, (req, res, next)=>{})
 app.use('/',accountRouter)
 app.use('/',homeRouter)
 
+//them port chon len heroko
 app.listen(process.env.port || port, () => {
   console.log(`Example app listening on port ${port}`)
 })
