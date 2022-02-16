@@ -44,5 +44,5 @@ app.use('/',homeRouter)
 
 //them port chon len heroko
 app.listen(process.env.PORT || PORT, () => {
-  console.log(`Example app listening on port ${process.env.PORT}`)
+  console.log(`Example app listening on port ${process.env.PORT} vs ${PORT}`)
 })

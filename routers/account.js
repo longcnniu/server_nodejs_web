@@ -15,125 +15,125 @@ const OTPModel = require('../models/otp')
 //===================================================================================================
 //registration user
 router.post('/registration', async (req, res, next) => {
-    const { email, password } = req.body
+  const { email, password } = req.body
 
-    if (!email || !password) {
-        return res.status(400).json({ success: false, message: 'Missing username and/or passwoed' })
+  if (!email || !password) {
+    return res.status(400).json({ success: false, message: 'Missing username and/or passwoed' })
+  }
+
+  try {
+    //check for existing user
+    const checkEmail = await AccountModel.findOne({ email })
+
+    if (checkEmail) {
+      return res.status(400).json({ success: false, message: 'Email already exists' })
     }
 
-    try {
-        //check for existing user
-        const checkEmail = await AccountModel.findOne({ email })
+    //All ok
+    const hashPassword = await argon2.hash(password)
+    const newUser = new AccountModel({ email, password: hashPassword })
+    await newUser.save()
 
-        if (checkEmail) {
-            return res.status(400).json({ success: false, message: 'Email already exists' })
-        }
-
-        //All ok
-        const hashPassword = await argon2.hash(password)
-        const newUser = new AccountModel({ email, password: hashPassword })
-        await newUser.save()
-
-        //Return token
-        const accessToken = await jwt.sign({ userId: newUser._id, role: newUser.role }, 'mk')
-        return res.status(200).json({ success: true, message: 'Created successfully', accessToken: accessToken })
-    } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' })
-    }
+    //Return token
+    const accessToken = await jwt.sign({ userId: newUser._id, role: newUser.role }, 'mk')
+    return res.status(200).json({ success: true, message: 'Created successfully', accessToken: accessToken })
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'loi server' })
+  }
 })
 //===================================================================================================
 //Login User
 router.get('/login', async (req, res, next) => {
-    res.json('xin chao')
+  res.json('xin chao')
 })
 
 router.post('/login', async (req, res, next) => {
-    const { email, password } = req.body
+  const { email, password } = req.body
 
-    if (!email || !password) {
-        return res.status(400).json({ success: false, message: 'Missing email and/or passwoed' })
+  if (!email || !password) {
+    return res.status(400).json({ success: false, message: 'Missing email and/or passwoed' })
+  }
+
+  try {
+    //check for axisting user
+    const user = await AccountModel.findOne({ email })
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'Account does not exist' })
     }
 
-    try {
-        //check for axisting user
-        const user = await AccountModel.findOne({ email })
-        if (!user) {
-            return res.status(400).json({ success: false, message: 'Account does not exist' })
-        }
-
-        //username found
-        const passwordValid = await argon2.verify(user.password, password)
-        if (!passwordValid) {
-            return res.status(400).json({ success: false, message: 'Incorrect password' })
-        }
-
-        //All good
-        const accessToken = await jwt.sign({ userId: user._id, role: user.role }, 'mk')
-        return res.status(200).json({ success: true, message: 'User logged in successfully', accessToken: accessToken })
-    } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' })
+    //username found
+    const passwordValid = await argon2.verify(user.password, password)
+    if (!passwordValid) {
+      return res.status(400).json({ success: false, message: 'Incorrect password' })
     }
+
+    //All good
+    const accessToken = await jwt.sign({ userId: user._id, role: user.role }, 'mk')
+    return res.status(200).json({ success: true, message: 'User logged in successfully', accessToken: accessToken })
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'loi server' })
+  }
 })
 //===================================================================================================
 //logOut
 //===================================================================================================
 //Forgot password
 router.get('/forgot-password', (req, res, next) => {
-    res.json('page forgot password')
+  res.json('page forgot password')
 })
 
 router.post('/forgot-password', async (req, res, next) => {
-    const { email } = req.body
+  const { email } = req.body
 
-    if (!email) {
-        return res.status(400).json({ success: false, message: 'Missing email' })
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Missing email' })
+  }
+
+  try {
+    //check for axisting user
+    const check = await AccountModel.findOne({ email })
+    if (!check) {
+      return res.status(400).json({ success: false, message: 'Account does not exist' })
+    }
+    //check OTP in DB exists
+    const dataOTP = await OTPModel.findOne({ email })
+
+    //có OTP cũ
+    if (dataOTP) {
+      let currentTime = new Date().getTime()
+      let diff = dataOTP.expiresAt - currentTime
+      if (diff > 0) {
+        return res.json({ message: 'Sau 5p moi co the nhan email' })
+      }
     }
 
-    try {
-        //check for axisting user
-        const check = await AccountModel.findOne({ email })
-        if (!check) {
-            return res.status(400).json({ success: false, message: 'Account does not exist' })
-        }
-        //check OTP in DB exists
-        const dataOTP = await OTPModel.findOne({ email })
+    //Del OTP old
+    await OTPModel.deleteOne({ email })
 
-        //có OTP cũ
-        if (dataOTP) {
-            let currentTime = new Date().getTime()
-            let diff = dataOTP.expiresAt - currentTime
-            if (diff > 0) {
-                return res.json({ message: 'Sau 5p moi co the nhan email' })
-            }
-        }
+    //All ok
+    const OTP = Math.floor((Math.random() * 100000) + 1)
+    const expiresAt = new Date().getTime() + 300 * 1000
+    const newOTP = new OTPModel({ email, OTP, expiresAt })
+    await newOTP.save()
 
-        //Del OTP old
-        await OTPModel.deleteOne({ email })
+    //send email
+    var user = "lhldes201@gmail.com";
+    var pass = "PassWdes201";
+    var EmaiTo = email;
 
-        //All ok
-        const OTP = Math.floor((Math.random() * 100000) + 1)
-        const expiresAt = new Date().getTime() + 300 * 1000
-        const newOTP = new OTPModel({ email, OTP, expiresAt })
-        await newOTP.save()
+    var transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: user,
+        pass: pass
+      }
+    });
 
-        //send email
-        var user = "lhldes201@gmail.com";
-        var pass = "PassWdes201";
-        var EmaiTo = email;
-
-        var transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: user,
-                pass: pass
-            }
-        });
-
-        var mailOptions = {
-            from: user,
-            to: EmaiTo,
-            subject: 'Sending Email using Node.js',
-            html: `<head>
+    var mailOptions = {
+      from: user,
+      to: EmaiTo,
+      subject: 'Sending Email using Node.js',
+      html: `<head>
             <!--[if gte mso 9]>
           <xml>
             <o:OfficeDocumentSettings>
@@ -683,54 +683,94 @@ router.post('/forgot-password', async (req, res, next) => {
             <!--[if mso]></div><![endif]-->
             <!--[if IE]></div><![endif]-->
           </body>`,
-        };
+    };
 
-        transporter.sendMail(mailOptions, function (error, info) {
-            if (error) {
-                console.log(error);
-            } else {
-                return res.status(200).json({ success: true, message: 'send Email successfully' })
-            }
-        });
-    } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' + error })
-    }
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        console.log(error);
+      } else {
+        return res.status(200).json({ success: true, message: 'send Email successfully' })
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'loi server' + error })
+  }
 })
 
 //check OTP and change password
 router.post('/send-otp', async (req, res, next) => {
-    const { email, otp, password } = req.body
+  const { email, otp, password } = req.body
 
 
-    if (!email || !otp || !password) {
-        return res.status(400).json({ success: false, message: 'Missing email and/or otp vs password' })
+  if (!email || !otp || !password) {
+    return res.status(400).json({ success: false, message: 'Missing email and/or otp vs password' })
+  }
+
+  try {
+    const dataOTP = await OTPModel.findOne({ email })
+
+    let currentTime = new Date().getTime()
+    let diff = dataOTP.expiresAt - currentTime
+    //check OTP
+    if (diff < 0) {
+      await OTPModel.findOneAndDelete({ email })
+      return res.status(400).json({ message: 'OTP Het hang', success: false })
+    }
+    if (otp != dataOTP.OTP) {
+      console.log(dataOTP.OTP);
+      return res.status(400).json({ message: 'Ma OTP Khong hop le', success: false })
     }
 
-    try {
-        const dataOTP = await OTPModel.findOne({ email })
+    //All good
+    const hashPassword = await argon2.hash(password)
+    await AccountModel.findOneAndUpdate({ email }, { password: hashPassword })
+    await OTPModel.findOneAndDelete({ email })
+    return res.status(200).json({ message: 'cap nha thanh cong', success: true })
+    //return res.redirect('/login')
 
-        let currentTime = new Date().getTime()
-        let diff = dataOTP.expiresAt - currentTime
-        //check OTP
-        if (diff < 0) {
-            await OTPModel.findOneAndDelete({ email })
-            return res.status(400).json({ message: 'OTP Het hang', success: false })
-        }
-        if (otp != dataOTP.OTP) {
-            console.log(dataOTP.OTP);
-            return res.status(400).json({ message: 'Ma OTP Khong hop le', success: false })
-        }
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'loi server' + error })
+  }
+})
+//===================================================================================================
+//Del Account
+router.post('/del-account', async (req, res, next) => {
+  const { email } = req.body
 
-        //All good
-        const hashPassword = await argon2.hash(password)
-        await AccountModel.findOneAndUpdate({ email }, { password: hashPassword })
-        await OTPModel.findOneAndDelete({ email })
-        return res.status(200).json({ message: 'cap nha thanh cong', success: true })
-        //return res.redirect('/login')
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Missing email'})
+  }
 
-    } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' + error })
+  try {
+    const user = await AccountModel.findOneAndDelete({email})
+
+    if(!user){
+      return res.status(400).json({message: 'Email khong ton tai', success: false})
     }
+
+    //All good
+    res.status(200).json({message: 'Del Thanh cong', success: true})
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'loi server' + error })
+  }
+})
+
+//===================================================================================================
+//All Account
+router.get('/all-user', async (req, res, next) => {
+  
+  try {
+    const user = await AccountModel.find()
+
+    if(user == ''){
+      return res.status(200).json('Chua co tia khoan')
+    }
+
+    res.status(200).json(user)
+    
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'loi server' + error })
+  }
 })
 
 module.exports = router
