@@ -1,12 +1,9 @@
 const express = require('express')
 var router = express.Router()
-const autologin = require('../function/autologin')
 //hash password
 const argon2 = require('argon2');
 //jwt
 var jwt = require('jsonwebtoken')
-
-const path = require('path')
 
 //them thu vien
 const nodemailer = require("nodemailer");
@@ -47,23 +44,7 @@ router.post('/registration', async (req, res, next) => {
 //===================================================================================================
 //Login User
 router.get('/login', async (req, res, next) => {
-    try {
-        const token = req.cookies.token
-        const tokenUser = jwt.verify(token, 'mk')
-
-        const User = await AccountModel.findOne({ _id: tokenUser.userId })
-
-        //check account in DB
-        if (!User) {
-            res.sendFile(path.join(__dirname, '../public/view/login.html'))
-        } else {
-            //all good
-            next()
-            return res.redirect('/home')
-        }
-    } catch (error) {
-        res.sendFile(path.join(__dirname, '../public/view/login.html'))
-    }
+    res.json('xin chao')
 })
 
 router.post('/login', async (req, res, next) => {
@@ -98,7 +79,7 @@ router.post('/login', async (req, res, next) => {
 //===================================================================================================
 //Forgot password
 router.get('/forgot-password', (req, res, next) => {
-    res.sendFile(path.join(__dirname, '../public/view/forgot-password.html'))
+    res.json('page forgot password')
 })
 
 router.post('/forgot-password', async (req, res, next) => {

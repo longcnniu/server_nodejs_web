@@ -2,7 +2,6 @@ const express = require('express')
 const bodyParser = require('body-parser')
 var cookieParser = require('cookie-parser')
 const autologin = require('./function/autologin')
-const path = require('path')
 const mongoose = require('mongoose');
 var cors = require('cors')
 
@@ -25,7 +24,6 @@ connectDB()
 //===============================================================
 const app = express()
 app.use(cors())
-app.use('/public', express.static(path.join(__dirname, '/public')))
 app.use(cookieParser())
 
 // parse application/x-www-form-urlencoded
