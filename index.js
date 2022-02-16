@@ -33,7 +33,7 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
 
-const port = 5000
+const PORT = 5000
 //================================================================
 //Router
 app.get('/',(req, res, next)=>{
@@ -43,6 +43,6 @@ app.use('/',accountRouter)
 app.use('/',homeRouter)
 
 //them port chon len heroko
-app.listen(process.env.port || port, () => {
+app.listen(process.env.PORT || PORT, () => {
   console.log(`Example app listening on port ${port}`)
 })
