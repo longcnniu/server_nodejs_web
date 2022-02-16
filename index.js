@@ -13,7 +13,7 @@ const homeRouter = require('./routers/home')
 //conet DB
 const connectDB = async () =>{
   try {
-    await mongoose.connect('mongodb://localhost:27017/?readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false');
+    await mongoose.connect('mongodb+srv://webnode:webnode123@cluster0.z8p9h.mongodb.net/myFirstDatabase?retryWrites=true&w=majority');
     console.log('MongoDB connected');
   } catch (error) {
     console.log(error.message);
@@ -42,6 +42,6 @@ app.get('/',autologin, (req, res, next)=>{})
 app.use('/',accountRouter)
 app.use('/',homeRouter)
 
-app.listen(port, () => {
+app.listen(process.env.port || port, () => {
   console.log(`Example app listening on port ${port}`)
 })
