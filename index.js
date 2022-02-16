@@ -35,8 +35,10 @@ app.use(bodyParser.json())
 
 const port = 5000
 //================================================================
-//Routers
-app.get('/',autologin, (req, res, next)=>{})
+//Router
+app.get('/',(req, res, next)=>{
+  res.json('Hello')
+})
 app.use('/',accountRouter)
 app.use('/',homeRouter)
 
