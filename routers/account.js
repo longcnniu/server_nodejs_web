@@ -16,7 +16,7 @@ const OTPModel = require('../models/otp')
 const middlewareCntroller = require("../controllers/middlewareController")
 
 //express validator
-const { check } = require('express-validator');
+const { check, validationResult } = require('express-validator');
 
 //===================================================================================================
 //registration user
@@ -54,7 +54,13 @@ router.get('/login', async (req, res, next) => {
 })
 
 router.post('/login',// username must be an email
-  async (req, res, next) => {
+check('email').isEmail().withMessage('Enter the correct email format'),
+check('password')
+.isLength({ min: 5 })
+.withMessage('must be at least 5 chars long')
+.matches(/\d/)
+.withMessage('must contain a number'),
+  async (req, res) => {
     // Finds the validation errors in this request and wraps them in an object with handy functions
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
