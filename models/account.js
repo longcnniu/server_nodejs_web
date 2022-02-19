@@ -18,7 +18,7 @@ const AccountSchema = new Schema({
   },
   role:{
       type: String,
-      default: 'user'
+      query: true
   }
 });
 

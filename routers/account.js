@@ -12,13 +12,16 @@ const nodemailer = require("nodemailer");
 const AccountModel = require('../models/account')
 const OTPModel = require('../models/otp')
 
+//check JWT
+const middlewareCntroller = require("../controllers/middlewareController")
+
 //===================================================================================================
 //registration user
 router.post('/registration', async (req, res, next) => {
-  const { email, password } = req.body
+  const { email, password, role } = req.body
 
-  if (!email || !password) {
-    return res.status(400).json({ success: false, message: 'Missing username and/or passwoed' })
+  if (!email || !password || !role) {
+    return res.status(400).json({ success: false, message: 'Missing username and/or passwoed vs role' })
   }
 
   try {
@@ -31,11 +34,11 @@ router.post('/registration', async (req, res, next) => {
 
     //All ok
     const hashPassword = await argon2.hash(password)
-    const newUser = new AccountModel({ email, password: hashPassword })
+    const newUser = new AccountModel({ email, password: hashPassword, role })
     await newUser.save()
 
     //Return token
-    const accessToken = await jwt.sign({ userId: newUser._id, role: newUser.role }, process.env.ACCESSTOKEN_MK)
+    const accessToken = await jwt.sign({ userId: newUser._id, role: newUser.role }, process.env.ACCESSTOKEN_MK, {expiresIn: "5m"})
     return res.status(200).json({ success: true, message: 'Created successfully', accessToken: accessToken })
   } catch (error) {
     return res.status(500).json({ success: false, message: 'loi server' })
@@ -68,7 +71,7 @@ router.post('/login', async (req, res, next) => {
     }
 
     //All good
-    const accessToken = await jwt.sign({ userId: user._id, role: user.role }, process.env.ACCESSTOKEN_MK)
+    const accessToken = await jwt.sign({ userId: user._id, email: user.email, role: user.role }, process.env.ACCESSTOKEN_MK, {expiresIn: "5m"})
     return res.status(200).json({ success: true, message: 'User logged in successfully', accessToken: accessToken })
   } catch (error) {
     return res.status(500).json({ success: false, message: 'loi server' })
@@ -734,7 +737,7 @@ router.post('/send-otp', async (req, res, next) => {
 })
 //===================================================================================================
 //Del Account
-router.post('/del-account', async (req, res, next) => {
+router.post('/del-account', middlewareCntroller.verifyTokenAndAdminAuth, async (req, res, next) => {
   const { email } = req.body
 
   if (!email) {
@@ -757,7 +760,7 @@ router.post('/del-account', async (req, res, next) => {
 
 //===================================================================================================
 //All Account
-router.get('/all-user', async (req, res, next) => {
+router.get('/all-user', middlewareCntroller.verifyTokenAndAdminAuth, async (req, res, next) => {
   
   try {
     const user = await AccountModel.find()
