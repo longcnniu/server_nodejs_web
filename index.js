@@ -1,18 +1,20 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 var cookieParser = require('cookie-parser')
-const autologin = require('./function/autologin')
 const mongoose = require('mongoose');
+const dotenv = require('dotenv')
 var cors = require('cors')
 
 //Routers
 const accountRouter = require('./routers/account')
 const homeRouter = require('./routers/home')
 
+dotenv.config()
+
 //conet DB
 const connectDB = async () =>{
   try {
-    await mongoose.connect('mongodb+srv://webnode:webnode123@cluster0.z8p9h.mongodb.net/myFirstDatabase?retryWrites=true&w=majority');
+    await mongoose.connect(process.env.MONGODB_URL);
     console.log('MongoDB connected');
   } catch (error) {
     console.log(error.message);

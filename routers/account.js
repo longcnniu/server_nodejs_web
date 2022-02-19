@@ -35,7 +35,7 @@ router.post('/registration', async (req, res, next) => {
     await newUser.save()
 
     //Return token
-    const accessToken = await jwt.sign({ userId: newUser._id, role: newUser.role }, 'mk')
+    const accessToken = await jwt.sign({ userId: newUser._id, role: newUser.role }, process.env.ACCESSTOKEN_MK)
     return res.status(200).json({ success: true, message: 'Created successfully', accessToken: accessToken })
   } catch (error) {
     return res.status(500).json({ success: false, message: 'loi server' })
@@ -68,7 +68,7 @@ router.post('/login', async (req, res, next) => {
     }
 
     //All good
-    const accessToken = await jwt.sign({ userId: user._id, role: user.role }, 'mk')
+    const accessToken = await jwt.sign({ userId: user._id, role: user.role }, process.env.ACCESSTOKEN_MK)
     return res.status(200).json({ success: true, message: 'User logged in successfully', accessToken: accessToken })
   } catch (error) {
     return res.status(500).json({ success: false, message: 'loi server' })
@@ -117,8 +117,8 @@ router.post('/forgot-password', async (req, res, next) => {
     await newOTP.save()
 
     //send email
-    var user = "lhldes201@gmail.com";
-    var pass = "PassWdes201";
+    var user = process.env.EMAIL;
+    var pass = process.env.PASS;
     var EmaiTo = email;
 
     var transporter = nodemailer.createTransport({
@@ -763,7 +763,7 @@ router.get('/all-user', async (req, res, next) => {
     const user = await AccountModel.find()
 
     if(user == ''){
-      return res.status(200).json('Chua co tia khoan')
+      return res.status(200).json('Chua co tai khoan')
     }
 
     res.status(200).json(user)
