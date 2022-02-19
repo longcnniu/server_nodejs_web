@@ -18,6 +18,10 @@ const middlewareCntroller = require("../controllers/middlewareController")
 //express validator
 const { check, validationResult } = require('express-validator');
 
+//cookie-parser
+const cookieParser = require('cookie-parser')
+
+
 //===================================================================================================
 //registration user
 router.post('/registration', async (req, res, next) => {
@@ -41,8 +45,9 @@ router.post('/registration', async (req, res, next) => {
     await newUser.save()
 
     //Return token
-    const accessToken = await jwt.sign({ userId: newUser._id, role: newUser.role }, process.env.ACCESSTOKEN_MK, { expiresIn: "5m" })
-    return res.status(200).json({ success: true, message: 'Created successfully', accessToken: accessToken })
+    const accessToken = await jwt.sign({ userId: newUser._id, role: newUser.role, email: newUser.email}, process.env.ACCESSTOKEN_MK, { expiresIn: "5m" })
+    const refreshToken = await jwt.sign({ userId: newUser._id, role: newUser.role, email: newUser.email}, process.env.REFRESTOKEN_MK, { expiresIn: "15m" })
+    return res.status(200).json({ success: true, message: 'Created successfully', accessToken: accessToken, refreshToken: refreshToken })
   } catch (error) {
     return res.status(500).json({ success: false, message: 'loi server' })
   }
@@ -88,6 +93,13 @@ check('password')
 
       //All good
       const accessToken = await jwt.sign({ userId: user._id, email: user.email, role: user.role }, process.env.ACCESSTOKEN_MK, { expiresIn: "5m" })
+      const refreshToken = await jwt.sign({ userId: user._id, email: user.email, role: user.role }, process.env.REFRESTOKEN_MK, { expiresIn: "15m" })
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: false, //True when public server
+        path:"/",
+        sameSite: "strict"
+      })
       return res.status(200).json({ success: true, message: 'User logged in successfully', accessToken: accessToken })
     } catch (error) {
       return res.status(500).json({ success: false, message: 'loi server' })

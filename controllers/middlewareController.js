@@ -21,7 +21,7 @@ const middlewareCntroller = {
     },
 
     //veriffyToken Admin
-    verifyTokenAndAdminAuth: (req, res, next)=> {
+        verifyTokenAndAdminAuth: (req, res, next)=> {
         middlewareCntroller.verifyToken(req,res, ()=>{
             if(req.user.role == 'admin'){
                 next()

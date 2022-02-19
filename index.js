@@ -6,6 +6,7 @@ var cookieParser = require('cookie-parser')
 const mongoose = require('mongoose');
 const dotenv = require('dotenv')
 var cors = require('cors')
+var cookieParser = require('cookie-parser')
 
 //Routers
 const accountRouter = require('./routers/account')
@@ -54,6 +55,7 @@ const limiter = rateLimit({
 //================================================================
 //gồm 14 middleware nhỏ ở trong giúp xử lý, lọc các HTTP header độc hại (nhằm khai thác lỗ hổng XSS hay clickjacking, …).
 app.use(helmet())
+app.use(cookieParser())
 //================================================================
 //Router
 app.use('/',accountRouter)
