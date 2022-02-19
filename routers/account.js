@@ -781,7 +781,7 @@ router.get('/all-user', middlewareCntroller.verifyTokenAndAdminAuth, async (req,
   try {
     const user = await AccountModel.find()
 
-    if (user == '') {
+    if (user.isEmpty()) {
       return res.status(200).json('Chua co tai khoan')
     }
 

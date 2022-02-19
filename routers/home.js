@@ -1,16 +1,11 @@
 const express = require('express')
+const middlewareCntroller = require('../controllers/middlewareController')
 
 var router = express.Router()
-const checklogin = require('../function/checklogin')
-
-
-
-const path = require('path')
-
 
 //=========================================================
-router.get('/home/',checklogin, (req, res, next) => {
-    res.sendFile(path.join(__dirname, '../public/view/home.html'))
+router.get('/',middlewareCntroller.verifyToken, (req, res, next) => {
+    res.json('Home')
 })
 
 
