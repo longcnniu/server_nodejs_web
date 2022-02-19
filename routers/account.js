@@ -15,6 +15,9 @@ const OTPModel = require('../models/otp')
 //check JWT
 const middlewareCntroller = require("../controllers/middlewareController")
 
+//express validator
+const { check } = require('express-validator');
+
 //===================================================================================================
 //registration user
 router.post('/registration', async (req, res, next) => {
@@ -38,7 +41,7 @@ router.post('/registration', async (req, res, next) => {
     await newUser.save()
 
     //Return token
-    const accessToken = await jwt.sign({ userId: newUser._id, role: newUser.role }, process.env.ACCESSTOKEN_MK, {expiresIn: "5m"})
+    const accessToken = await jwt.sign({ userId: newUser._id, role: newUser.role }, process.env.ACCESSTOKEN_MK, { expiresIn: "5m" })
     return res.status(200).json({ success: true, message: 'Created successfully', accessToken: accessToken })
   } catch (error) {
     return res.status(500).json({ success: false, message: 'loi server' })
@@ -50,33 +53,40 @@ router.get('/login', async (req, res, next) => {
   res.json('xin chao')
 })
 
-router.post('/login', async (req, res, next) => {
-  const { email, password } = req.body
-
-  if (!email || !password) {
-    return res.status(400).json({ success: false, message: 'Missing email and/or passwoed' })
-  }
-
-  try {
-    //check for axisting user
-    const user = await AccountModel.findOne({ email })
-    if (!user) {
-      return res.status(400).json({ success: false, message: 'Account does not exist' })
+router.post('/login',// username must be an email
+  async (req, res, next) => {
+    // Finds the validation errors in this request and wraps them in an object with handy functions
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
 
-    //username found
-    const passwordValid = await argon2.verify(user.password, password)
-    if (!passwordValid) {
-      return res.status(400).json({ success: false, message: 'Incorrect password' })
+    const { email, password } = req.body
+
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: 'Missing email and/or passwoed' })
     }
 
-    //All good
-    const accessToken = await jwt.sign({ userId: user._id, email: user.email, role: user.role }, process.env.ACCESSTOKEN_MK, {expiresIn: "5m"})
-    return res.status(200).json({ success: true, message: 'User logged in successfully', accessToken: accessToken })
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'loi server' })
-  }
-})
+    try {
+      //check for axisting user
+      const user = await AccountModel.findOne({ email })
+      if (!user) {
+        return res.status(400).json({ success: false, message: 'Account does not exist' })
+      }
+
+      //username found
+      const passwordValid = await argon2.verify(user.password, password)
+      if (!passwordValid) {
+        return res.status(400).json({ success: false, message: 'Incorrect password' })
+      }
+
+      //All good
+      const accessToken = await jwt.sign({ userId: user._id, email: user.email, role: user.role }, process.env.ACCESSTOKEN_MK, { expiresIn: "5m" })
+      return res.status(200).json({ success: true, message: 'User logged in successfully', accessToken: accessToken })
+    } catch (error) {
+      return res.status(500).json({ success: false, message: 'loi server' })
+    }
+  })
 //===================================================================================================
 //logOut
 //===================================================================================================
@@ -741,18 +751,18 @@ router.post('/del-account', middlewareCntroller.verifyTokenAndAdminAuth, async (
   const { email } = req.body
 
   if (!email) {
-    return res.status(400).json({ success: false, message: 'Missing email'})
+    return res.status(400).json({ success: false, message: 'Missing email' })
   }
 
   try {
-    const user = await AccountModel.findOneAndDelete({email})
+    const user = await AccountModel.findOneAndDelete({ email })
 
-    if(!user){
-      return res.status(400).json({message: 'Email khong ton tai', success: false})
+    if (!user) {
+      return res.status(400).json({ message: 'Email khong ton tai', success: false })
     }
 
     //All good
-    res.status(200).json({message: 'Del Thanh cong', success: true})
+    res.status(200).json({ message: 'Del Thanh cong', success: true })
   } catch (error) {
     return res.status(500).json({ success: false, message: 'loi server' + error })
   }
@@ -761,16 +771,16 @@ router.post('/del-account', middlewareCntroller.verifyTokenAndAdminAuth, async (
 //===================================================================================================
 //All Account
 router.get('/all-user', middlewareCntroller.verifyTokenAndAdminAuth, async (req, res, next) => {
-  
+
   try {
     const user = await AccountModel.find()
 
-    if(user == ''){
+    if (user == '') {
       return res.status(200).json('Chua co tai khoan')
     }
 
     res.status(200).json(user)
-    
+
   } catch (error) {
     return res.status(500).json({ success: false, message: 'loi server' + error })
   }
