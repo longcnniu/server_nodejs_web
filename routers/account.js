@@ -23,6 +23,10 @@ const cookieParser = require('cookie-parser')
 
 
 //===================================================================================================
+router.get('/registration',middlewareCntroller.verifyTokenAndAdminAuth, (req, res) => {
+  return res.status(200).json({ success: true})
+})
+
 //registration user
 router.post('/registration', async (req, res, next) => {
   const { email, password, role } = req.body
@@ -45,9 +49,9 @@ router.post('/registration', async (req, res, next) => {
     await newUser.save()
 
     //Return token
-    const accessToken = await jwt.sign({ userId: newUser._id, role: newUser.role, email: newUser.email}, process.env.ACCESSTOKEN_MK, { expiresIn: "5m" })
-    const refreshToken = await jwt.sign({ userId: newUser._id, role: newUser.role, email: newUser.email}, process.env.REFRESTOKEN_MK, { expiresIn: "15m" })
-    return res.status(200).json({ success: true, message: 'Created successfully', accessToken: accessToken, refreshToken: refreshToken })
+    // const accessToken = await jwt.sign({ userId: newUser._id, role: newUser.role, email: newUser.email}, process.env.ACCESSTOKEN_MK, { expiresIn: "1d" })
+    // const refreshToken = await jwt.sign({ userId: newUser._id, role: newUser.role, email: newUser.email}, process.env.REFRESTOKEN_MK, { expiresIn: "15m" })
+    return res.status(200).json({ success: true, message: 'Created successfully'})
   } catch (error) {
     return res.status(500).json({ success: false, message: 'loi server' })
   }
@@ -89,7 +93,7 @@ check('password')
       }
 
       //All good
-      const accessToken = await jwt.sign({ userId: user._id, email: user.email, role: user.role }, process.env.ACCESSTOKEN_MK, { expiresIn: "5m" })
+      const accessToken = await jwt.sign({ userId: user._id, email: user.email, role: user.role }, process.env.ACCESSTOKEN_MK, { expiresIn: "1d" })
       const refreshToken = await jwt.sign({ userId: user._id, email: user.email, role: user.role }, process.env.REFRESTOKEN_MK, { expiresIn: "15m" })
       // res.cookie("refreshToken", refreshToken, {
       //   httpOnly: true,
@@ -785,12 +789,12 @@ router.post('/del-account', middlewareCntroller.verifyTokenAndAdminAuth, async (
 
 //===================================================================================================
 //All Account
-router.get('/all-user', middlewareCntroller.verifyTokenAndAdminAuth, async (req, res, next) => {
+router.get('/all-user', middlewareCntroller.verifyTokenAndAdminAuth, async (req, res) => {
 
   try {
     const user = await AccountModel.find()
 
-    if (user.isEmpty()) {
+    if (user == '') {
       return res.status(200).json('Chua co tai khoan')
     }
 
