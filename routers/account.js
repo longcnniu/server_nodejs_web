@@ -53,10 +53,7 @@ router.post('/registration', async (req, res, next) => {
   }
 })
 //===================================================================================================
-//Login User
-router.get('/login', async (req, res, next) => {
-  res.json('xin chao')
-})
+
 
 router.post('/login',// username must be an email
 check('email').isEmail().withMessage('Enter the correct email format'),
@@ -94,13 +91,13 @@ check('password')
       //All good
       const accessToken = await jwt.sign({ userId: user._id, email: user.email, role: user.role }, process.env.ACCESSTOKEN_MK, { expiresIn: "5m" })
       const refreshToken = await jwt.sign({ userId: user._id, email: user.email, role: user.role }, process.env.REFRESTOKEN_MK, { expiresIn: "15m" })
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: false, //True when public server
-        path:"/",
-        sameSite: "strict"
-      })
-      return res.status(200).json({ success: true, message: 'User logged in successfully', accessToken: accessToken })
+      // res.cookie("refreshToken", refreshToken, {
+      //   httpOnly: true,
+      //   secure: false, //True when public server
+      //   path:"/",
+      //   sameSite: "strict"
+      // })
+      return res.status(200).json({ success: true, message: 'User logged in successfully', accessToken: accessToken, refreshToken: refreshToken })
     } catch (error) {
       return res.status(500).json({ success: false, message: 'loi server' })
     }
@@ -802,6 +799,12 @@ router.get('/all-user', middlewareCntroller.verifyTokenAndAdminAuth, async (req,
   } catch (error) {
     return res.status(500).json({ success: false, message: 'loi server' + error })
   }
+})
+
+//===================================================================================================
+//rereshToken
+router.post("/refresh", async(req, res, next) => {
+  
 })
 
 module.exports = router

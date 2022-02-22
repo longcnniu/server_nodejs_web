@@ -4,8 +4,8 @@ const AccountModel = require('../models/account')
 
 const checklogin = async (req, res, next) => {
     try {
-        const token = req.cookies.token
-        const tokenUser = jwt.verify(token, 'mk')
+        const token = req.headers.token
+        const tokenUser = jwt.verify(token, process.env.ACCESSTOKEN_MK)
 
         const User = await AccountModel.findOne({ _id: tokenUser.userId })
 

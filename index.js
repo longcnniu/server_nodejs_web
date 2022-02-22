@@ -11,6 +11,7 @@ var cookieParser = require('cookie-parser')
 //Routers
 const accountRouter = require('./routers/account')
 const homeRouter = require('./routers/home')
+const login = require('./routers/login')
 
 dotenv.config()
 
@@ -60,6 +61,7 @@ app.use(cookieParser())
 //Router
 app.use('/',accountRouter)
 app.use('/',homeRouter)
+app.use('/',login)
 
 //them port chon len heroko
 app.listen(process.env.PORT || PORT, () => {
