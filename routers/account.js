@@ -28,11 +28,11 @@ router.get('/registration',middlewareCntroller.verifyTokenAndAdminAuth, (req, re
 })
 
 //registration user
-router.post('/registration', async (req, res, next) => {
-  const { email, password, role } = req.body
+router.post('/registration', async (req, res) => {
+  const { email, password, role, firstName, lastName } = req.body
 
-  if (!email || !password || !role) {
-    return res.status(400).json({ success: false, message: 'Missing username and/or passwoed vs role' })
+  if (!email || !password || !role || !firstName || !lastName) {
+    return res.status(400).json({ success: false, message: 'Missing' })
   }
 
   try {
@@ -45,7 +45,7 @@ router.post('/registration', async (req, res, next) => {
 
     //All ok
     const hashPassword = await argon2.hash(password)
-    const newUser = new AccountModel({ email, password: hashPassword, role })
+    const newUser = new AccountModel({ email, password: hashPassword, role, firstName, lastName })
     await newUser.save()
 
     //Return token
@@ -809,6 +809,59 @@ router.get('/all-user', middlewareCntroller.verifyTokenAndAdminAuth, async (req,
 //rereshToken
 router.post("/refresh", async(req, res, next) => {
   
+})
+
+//===================================================================================================
+//Get one user
+router.get('/view-user/:id', async (req, res) => {
+  const id = req.params.id
+
+  try {
+      const data = await AccountModel.findById({ _id: id })
+
+      if (!data) {
+          return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
+      }
+
+      return res.status(200).json({ success: true, data })
+  } catch (error) {
+      res.json(error)
+  }
+
+})
+
+//updata user
+router.put('/view-user/:id', async (req, res) => {
+  const id = req.params.id
+  const role = req.body.role
+  const email = req.body.email
+  try {
+      const data = await AccountModel.findByIdAndUpdate({ _id: `${id}` }, { email, role: role })
+
+      if (!data) {
+          return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
+      }
+
+      return res.status(200).json({ success: true, message: 'cap nhat thanh cong' })
+  } catch (error) {
+      res.json(error)
+  }
+})
+
+//del User
+router.delete('/view-user/:id', async (req, res) => {
+  const id = req.params.id
+  try {
+      const data = await AccountModel.findByIdAndDelete({ _id: `${id}` })
+      
+      if (!data) {
+          return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
+      }
+
+      return res.status(200).json({ success: true, message: 'xoa thanh cong' })
+  } catch (error) {
+      res.json(error)
+  }
 })
 
 module.exports = router

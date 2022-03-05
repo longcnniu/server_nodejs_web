@@ -5,20 +5,28 @@ const Schema = mongoose.Schema;
 
 const AccountSchema = new Schema({
   email: {
-      type: String,
-      query: true
+    type: String,
+    query: true
   },
   password: {
-      type: String,
-      query: true
+    type: String,
+    query: true
   },
-  date:{
-    type: Date, 
+  firstName: {
+    type: String,
+    query: true
+  },
+  lastName: {
+    type: String,
+    query: true
+  },
+  date: {
+    type: Date,
     default: Date.now
   },
-  role:{
-      type: String,
-      query: true
+  role: {
+    type: String,
+    query: true
   }
 });
 
