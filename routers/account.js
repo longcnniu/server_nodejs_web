@@ -23,8 +23,9 @@ const cookieParser = require('cookie-parser')
 
 
 //===================================================================================================
-router.get('/registration',middlewareCntroller.verifyTokenAndAdminAuth, (req, res) => {
-  return res.status(200).json({ success: true})
+router.get('/registration',middlewareCntroller.verifyTokenAndQAAuth, (req, res) => {
+  const role = req.user.role
+  return res.status(200).json({ success: true, role: role})
 })
 
 //registration user
@@ -93,8 +94,8 @@ check('password')
       }
 
       //All good
-      const accessToken = await jwt.sign({ userId: user._id, email: user.email, role: user.role }, process.env.ACCESSTOKEN_MK, { expiresIn: "1d" })
-      const refreshToken = await jwt.sign({ userId: user._id, email: user.email, role: user.role }, process.env.REFRESTOKEN_MK, { expiresIn: "15m" })
+      const accessToken = await jwt.sign({ userId: user._id, email: user.email, role: user.role, name: `${user.firstName} ${user.lastName}` }, process.env.ACCESSTOKEN_MK, { expiresIn: "1d" })
+      const refreshToken = await jwt.sign({ userId: user._id, email: user.email, role: user.role, name: `${user.firstName} ${user.lastName}` }, process.env.REFRESTOKEN_MK, { expiresIn: "15m" })
       // res.cookie("refreshToken", refreshToken, {
       //   httpOnly: true,
       //   secure: false, //True when public server
@@ -792,13 +793,31 @@ router.post('/del-account', middlewareCntroller.verifyTokenAndAdminAuth, async (
 router.get('/all-user', middlewareCntroller.verifyTokenAndAdminAuth, async (req, res) => {
 
   try {
-    const user = await AccountModel.find()
+    const user = await AccountModel.find({role: ['staff','qa-manager']})
 
     if (user == '') {
-      return res.status(200).json('Chua co tai khoan')
+      return res.status(200).json({message: 'Chua co tai khoan', success: false})
     }
 
-    res.status(200).json(user)
+    res.status(200).json({dataUsers: user, success: true})
+
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'loi server' + error })
+  }
+})
+
+//===================================================================================================
+//All account for QA Manager
+router.get('/all-user-qa', middlewareCntroller.verifyTokenAndQAAuth, async (req, res) => {
+
+  try {
+    const user = await AccountModel.find({role: "staff"})
+
+    if (user == '') {
+      return res.status(200).json({message: 'Chua co tai khoan', success: false})
+    }
+
+    res.status(200).json({dataUsers: user, success: true})
 
   } catch (error) {
     return res.status(500).json({ success: false, message: 'loi server' + error })
@@ -813,8 +832,9 @@ router.post("/refresh", async(req, res, next) => {
 
 //===================================================================================================
 //Get one user
-router.get('/view-user/:id', async (req, res) => {
+router.get('/view-user/:id', middlewareCntroller.verifyTokenAndQAAuth,async (req, res) => {
   const id = req.params.id
+  const roleAuth = req.user.role
 
   try {
       const data = await AccountModel.findById({ _id: id })
@@ -823,7 +843,7 @@ router.get('/view-user/:id', async (req, res) => {
           return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
       }
 
-      return res.status(200).json({ success: true, data })
+      return res.status(200).json({ success: true, data , roleAuth: roleAuth})
   } catch (error) {
       res.json(error)
   }
@@ -831,7 +851,7 @@ router.get('/view-user/:id', async (req, res) => {
 })
 
 //updata user
-router.put('/view-user/:id', async (req, res) => {
+router.put('/view-user/:id', middlewareCntroller.verifyTokenAndQAAuth, async (req, res) => {
   const id = req.params.id
   const role = req.body.role
   const email = req.body.email
@@ -849,7 +869,7 @@ router.put('/view-user/:id', async (req, res) => {
 })
 
 //del User
-router.delete('/view-user/:id', async (req, res) => {
+router.delete('/view-user/:id', middlewareCntroller.verifyTokenAndQAAuth, async (req, res) => {
   const id = req.params.id
   try {
       const data = await AccountModel.findByIdAndDelete({ _id: `${id}` })

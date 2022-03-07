@@ -13,6 +13,8 @@ const accountRouter = require('./routers/account')
 const homeRouter = require('./routers/home')
 const loginRouter = require('./routers/login')
 const adminRouter = require('./routers/admin')
+const QaManagerRouter = require('./routers/qaManager')
+const CategorysRouter = require('./routers/category')
 
 dotenv.config()
 
@@ -48,7 +50,7 @@ const limiter = rateLimit({
   // 15 minutes
     windowMs: 15 * 60 * 1000,
   // limit each IP to 100 requests per windowMs
-    max: 50,
+    max: 100,
     message: {
       message: "Too many requests from this IP, please try again in 1 minutes"
     }
@@ -64,6 +66,8 @@ app.use('/',accountRouter)
 app.use('/',homeRouter)
 app.use('/',loginRouter)
 app.use('/',adminRouter)
+app.use('/',QaManagerRouter)
+app.use('/',CategorysRouter)
 
 //them port chon len heroko
 app.listen(process.env.PORT || PORT, () => {

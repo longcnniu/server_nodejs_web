@@ -30,6 +30,30 @@ const middlewareCntroller = {
                 return res.status(403).json({ success: false, message: "You're not allowed"})
             }
         })
+    },
+
+    //veriffyToken QA manager
+    verifyTokenAndQAAuth: (req, res, next)=> {
+        middlewareCntroller.verifyToken(req,res, ()=>{
+            if(req.user.role == 'qa-manager'||'admin'){
+                next()
+            }
+            else{
+                return res.status(403).json({ success: false, message: "You're not allowed"})
+            }
+        })
+    },
+
+    //veriffyToken Staff
+    verifyTokenAndStaffAuth: (req, res, next)=> {
+        middlewareCntroller.verifyToken(req,res, ()=>{
+            if(req.user.role == 'qa-manager'||'admin'|| 'staff'){
+                next()
+            }
+            else{
+                return res.status(403).json({ success: false, message: "You're not allowed"})
+            }
+        })
     }
 }
 
