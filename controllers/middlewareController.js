@@ -35,7 +35,7 @@ const middlewareCntroller = {
     //veriffyToken QA manager
     verifyTokenAndQAAuth: (req, res, next)=> {
         middlewareCntroller.verifyToken(req,res, ()=>{
-            if(req.user.role == 'qa-manager'||'admin'){
+            if(req.user.role == 'admin'||req.user.role =='qa-manager'){
                 next()
             }
             else{
@@ -47,7 +47,7 @@ const middlewareCntroller = {
     //veriffyToken Staff
     verifyTokenAndStaffAuth: (req, res, next)=> {
         middlewareCntroller.verifyToken(req,res, ()=>{
-            if(req.user.role == 'qa-manager'||'admin'|| 'staff'){
+            if(req.user.role == 'qa-manager'||req.user.role == 'admin'||req.user.role == 'staff'){
                 next()
             }
             else{
