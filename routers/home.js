@@ -19,6 +19,18 @@ router.get('/post', middlewareCntroller.verifyToken, (req, res) => {
 })
 
 //get all bost
+router.get('/all-post', middlewareCntroller.verifyToken, async (req, res) => {
+    try {
+        const dataPost = await PostsModule.find()
+        if(!dataPost){
+            return res.status(400).json({success: false, message: 'khong co bia viet nao'})
+        }
+
+        return res.status(200).json({success: true, dataPost: dataPost})
+    } catch (error) {
+        return res.status(500).json({success: false, message: 'loi server'})
+    }
+})
 
 //post bai
 router.post('/post', middlewareCntroller.verifyTokenAndStaffAuth, async (req, res) => {
