@@ -48,7 +48,7 @@ const PORT = 5000
 //chong DOS DDOS
 const limiter = rateLimit({
   // 15 minutes
-    windowMs: 5 * 60 * 1000,
+    windowMs: 15 * 60 * 1000,
   // limit each IP to 100 requests per windowMs
     max: 100,
     message: {
