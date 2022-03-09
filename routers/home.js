@@ -54,8 +54,8 @@ router.post('/post', middlewareCntroller.verifyTokenAndStaffAuth, async (req, re
 })
 
 //put bai
-router.post('/post/:id', (req, res) => {
-
+router.post('/post/:id', middlewareCntroller.verifyToken, (req, res) => {
+    
 })
 
 //Del bai

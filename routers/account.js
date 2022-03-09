@@ -23,9 +23,9 @@ const cookieParser = require('cookie-parser')
 
 
 //===================================================================================================
-router.get('/registration',middlewareCntroller.verifyTokenAndQAAuth, (req, res) => {
+router.get('/registration', middlewareCntroller.verifyTokenAndQAAuth, (req, res) => {
   const role = req.user.role
-  return res.status(200).json({ success: true, role: role})
+  return res.status(200).json({ success: true, role: role })
 })
 
 //registration user
@@ -52,7 +52,7 @@ router.post('/registration', async (req, res) => {
     //Return token
     // const accessToken = await jwt.sign({ userId: newUser._id, role: newUser.role, email: newUser.email}, process.env.ACCESSTOKEN_MK, { expiresIn: "1d" })
     // const refreshToken = await jwt.sign({ userId: newUser._id, role: newUser.role, email: newUser.email}, process.env.REFRESTOKEN_MK, { expiresIn: "15m" })
-    return res.status(200).json({ success: true, message: 'Created successfully'})
+    return res.status(200).json({ success: true, message: 'Created successfully' })
   } catch (error) {
     return res.status(500).json({ success: false, message: 'loi server' })
   }
@@ -61,12 +61,12 @@ router.post('/registration', async (req, res) => {
 
 
 router.post('/login',// username must be an email
-check('email').isEmail().withMessage('Enter the correct email format'),
-check('password')
-.isLength({ min: 5 })
-.withMessage('must be at least 5 chars long')
-.matches(/\d/)
-.withMessage('must contain a number'),
+  check('email').isEmail().withMessage('Enter the correct email format'),
+  check('password')
+    .isLength({ min: 5 })
+    .withMessage('must be at least 5 chars long')
+    .matches(/\d/)
+    .withMessage('must contain a number'),
   async (req, res) => {
     // Finds the validation errors in this request and wraps them in an object with handy functions
     const errors = validationResult(req);
@@ -95,14 +95,14 @@ check('password')
 
       //All good
       const accessToken = await jwt.sign({ userId: user._id, email: user.email, role: user.role, name: `${user.firstName} ${user.lastName}` }, process.env.ACCESSTOKEN_MK, { expiresIn: "1d" })
-      const refreshToken = await jwt.sign({ userId: user._id, email: user.email, role: user.role, name: `${user.firstName} ${user.lastName}` }, process.env.REFRESTOKEN_MK, { expiresIn: "15m" })
+      // const refreshToken = await jwt.sign({ userId: user._id, email: user.email, role: user.role, name: `${user.firstName} ${user.lastName}` }, process.env.REFRESTOKEN_MK, { expiresIn: "15m" })
       // res.cookie("refreshToken", refreshToken, {
       //   httpOnly: true,
       //   secure: false, //True when public server
       //   path:"/",
       //   sameSite: "strict"
       // })
-      return res.status(200).json({ success: true, message: 'User logged in successfully', accessToken: accessToken, refreshToken: refreshToken })
+      return res.status(200).json({ success: true, message: 'User logged in successfully', accessToken: accessToken})
     } catch (error) {
       return res.status(500).json({ success: false, message: 'loi server' })
     }
@@ -793,13 +793,13 @@ router.post('/del-account', middlewareCntroller.verifyTokenAndAdminAuth, async (
 router.get('/all-user', middlewareCntroller.verifyTokenAndAdminAuth, async (req, res) => {
 
   try {
-    const user = await AccountModel.find({role: ['staff','qa-manager']})
+    const user = await AccountModel.find({ role: ['staff', 'qa-manager'] })
 
     if (user == '') {
-      return res.status(200).json({message: 'Chua co tai khoan', success: false})
+      return res.status(200).json({ message: 'Chua co tai khoan', success: false })
     }
 
-    res.status(200).json({dataUsers: user, success: true})
+    res.status(200).json({ dataUsers: user, success: true })
 
   } catch (error) {
     return res.status(500).json({ success: false, message: 'loi server' + error })
@@ -811,13 +811,13 @@ router.get('/all-user', middlewareCntroller.verifyTokenAndAdminAuth, async (req,
 router.get('/all-user-qa', middlewareCntroller.verifyTokenAndQAAuth, async (req, res) => {
 
   try {
-    const user = await AccountModel.find({role: "staff"})
+    const user = await AccountModel.find({ role: "staff" })
 
     if (user == '') {
-      return res.status(200).json({message: 'Chua co tai khoan', success: false})
+      return res.status(200).json({ message: 'Chua co tai khoan', success: false })
     }
 
-    res.status(200).json({dataUsers: user, success: true})
+    res.status(200).json({ dataUsers: user, success: true })
 
   } catch (error) {
     return res.status(500).json({ success: false, message: 'loi server' + error })
@@ -826,26 +826,23 @@ router.get('/all-user-qa', middlewareCntroller.verifyTokenAndQAAuth, async (req,
 
 //===================================================================================================
 //rereshToken
-router.post("/refresh", async(req, res, next) => {
-  
-})
 
 //===================================================================================================
 //Get one user
-router.get('/view-user/:id', middlewareCntroller.verifyTokenAndQAAuth,async (req, res) => {
+router.get('/view-user/:id', middlewareCntroller.verifyTokenAndQAAuth, async (req, res) => {
   const id = req.params.id
   const roleAuth = req.user.role
 
   try {
-      const data = await AccountModel.findById({ _id: id })
+    const data = await AccountModel.findById({ _id: id })
 
-      if (!data) {
-          return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
-      }
+    if (!data) {
+      return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
+    }
 
-      return res.status(200).json({ success: true, data , roleAuth: roleAuth})
+    return res.status(200).json({ success: true, data, roleAuth: roleAuth })
   } catch (error) {
-      res.json(error)
+    res.json(error)
   }
 
 })
@@ -856,15 +853,15 @@ router.put('/view-user/:id', middlewareCntroller.verifyTokenAndQAAuth, async (re
   const role = req.body.role
   const email = req.body.email
   try {
-      const data = await AccountModel.findByIdAndUpdate({ _id: `${id}` }, { email, role: role })
+    const data = await AccountModel.findByIdAndUpdate({ _id: `${id}` }, { email, role: role })
 
-      if (!data) {
-          return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
-      }
+    if (!data) {
+      return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
+    }
 
-      return res.status(200).json({ success: true, message: 'cap nhat thanh cong' })
+    return res.status(200).json({ success: true, message: 'cap nhat thanh cong' })
   } catch (error) {
-      res.json(error)
+    res.json(error)
   }
 })
 
@@ -872,15 +869,15 @@ router.put('/view-user/:id', middlewareCntroller.verifyTokenAndQAAuth, async (re
 router.delete('/view-user/:id', middlewareCntroller.verifyTokenAndQAAuth, async (req, res) => {
   const id = req.params.id
   try {
-      const data = await AccountModel.findByIdAndDelete({ _id: `${id}` })
-      
-      if (!data) {
-          return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
-      }
+    const data = await AccountModel.findByIdAndDelete({ _id: `${id}` })
 
-      return res.status(200).json({ success: true, message: 'xoa thanh cong' })
+    if (!data) {
+      return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
+    }
+
+    return res.status(200).json({ success: true, message: 'xoa thanh cong' })
   } catch (error) {
-      res.json(error)
+    res.json(error)
   }
 })
 

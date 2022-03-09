@@ -7,6 +7,14 @@ const CategorySchema = new Schema({
   title: {
     type: String,
     query: true
+  },
+  createDate: {
+    type: Date,
+    default: Date.now
+  },
+  endDate: {
+    type: Date,
+    query: true
   }
 });
 

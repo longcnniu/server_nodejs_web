@@ -14,9 +14,10 @@ router.get('/category', middlewareCntroller.verifyTokenAndQAAuth, (req, res) => 
 //category Post
 router.post('/category', middlewareCntroller.verifyTokenAndQAAuth, async (req, res) => {
     const title = req.body.title
+    const endDate = req.body.endDate
 
-    if (!title) {
-        res.status(401).json({ success: false, message: 'thieu tieu de' })
+    if (!title || !endDate) {
+        res.status(401).json({ success: false, message: 'thieu tieu de or ngay het hang' })
     }
 
     try {
@@ -26,7 +27,7 @@ router.post('/category', middlewareCntroller.verifyTokenAndQAAuth, async (req, r
             return res.status(401).json({ success: false, message: 'Category da ton tai' })
         }
 
-        const saveCategory = await CategoryModule({ title })
+        const saveCategory = await CategoryModule({ title, endDate })
         await saveCategory.save()
 
         //all ok
@@ -75,8 +76,9 @@ router.get('/category/:id', middlewareCntroller.verifyTokenAndQAAuth,async (req,
 router.put('/category/:id', middlewareCntroller.verifyTokenAndQAAuth, async (req, res) => {
     const id = req.params.id
     const title = req.body.title
+    const endDate = req.body.endDate
     try {
-        const data = await CategoryModule.findByIdAndUpdate({ _id: `${id}` }, {title})
+        const data = await CategoryModule.findByIdAndUpdate({ _id: `${id}` }, {title, endDate})
   
         if (!data) {
             return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
