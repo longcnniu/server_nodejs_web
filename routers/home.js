@@ -113,13 +113,14 @@ router.post('/post-comment/:id', middlewareCntroller.verifyToken, async (req, re
     const id = req.params.id
     const idUser = req.user.userId
     const comment = req.body.comment
+    const name = req.user.name
 
     if (!comment) {
         return res.status(401).json({ message: 'thieu noi dung binh luan' })
     }
 
     try {
-        const commentData = await CommentModule({ comment, idUser, idPost: id })
+        const commentData = await CommentModule({ comment, idUser, idPost: id, name })
         await commentData.save()
 
         return res.status(200).json({ success: true, message: 'comment thanh cong' })
