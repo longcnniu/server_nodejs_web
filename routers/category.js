@@ -54,6 +54,23 @@ router.get('/all-category', middlewareCntroller.verifyTokenAndQAAuth, async (req
     }
 })
 
+//Get All Catrgory còn hạn
+router.get('/all-category/exp', middlewareCntroller.verifyToken, async (req, res) => {
+
+    try {
+        const categorys = await CategoryModule.find({endDate: {$lt: Date.now()}})
+
+        if (categorys == '') {
+            return res.status(200).json({ message: 'Chua co category', success: false })
+        }
+
+        res.status(200).json({ dataCategorys: categorys, success: true })
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'loi server' + error })
+    }
+})
+
 //Get one category
 router.get('/category/:id', middlewareCntroller.verifyTokenAndQAAuth,async (req, res) => {
     const id = req.params.id

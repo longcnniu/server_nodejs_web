@@ -1,5 +1,4 @@
 // Using Node.js `require()`
-const { format } = require('express/lib/response');
 const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
@@ -33,8 +32,12 @@ const PostsSchema = new Schema({
     type: Number,
     query: true,
     default: 0
-  }
-
+  },
+  numberView: {
+    type: Number,
+    query: true,
+    default: 0
+  },
 });
 
 const PostsModule = mongoose.model('Posts', PostsSchema);
