@@ -58,7 +58,7 @@ router.get('/all-category', middlewareCntroller.verifyTokenAndQAAuth, async (req
 router.get('/all-category/exp', middlewareCntroller.verifyToken, async (req, res) => {
 
     try {
-        const categorys = await CategoryModule.find({endDate: {$lt: Date.now()}})
+        const categorys = await CategoryModule.find({endDate: {$gt: Date.now()}})
 
         if (categorys == '') {
             return res.status(200).json({ message: 'Chua co category', success: false })
