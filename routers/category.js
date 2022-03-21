@@ -33,7 +33,7 @@ router.post('/category', middlewareCntroller.verifyTokenAndQAAuth, async (req, r
         //all ok
         return res.status(200).json({ success: true, message: 'Save category success' })
     } catch (error) {
-        return res.status(401).json({ success: false, message: 'erro server' })
+        return res.status(401).json({ success: false, message: 'error server' })
     }
 })
 

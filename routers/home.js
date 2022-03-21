@@ -21,8 +21,16 @@ router.get('/post', middlewareCntroller.verifyToken, (req, res) => {
     return res.status(200).json({ success: true, role: req.user.role })
 })
 
-//get all bost
+//get all Post
 router.get('/all-post', middlewareCntroller.verifyToken, async (req, res) => {
+    const page = req.query.page
+
+    if (page) {
+
+    } else {
+
+    }
+    
     try {
         const dataPost = await PostsModule.find()
 
@@ -196,20 +204,20 @@ router.delete('/del-comment/:id', middlewareCntroller.verifyToken, async (req, r
     const idUser = req.user.userId
 
     try {
-        const findComment = await CommentModule.findOne({_id: id})
+        const findComment = await CommentModule.findOne({ _id: id })
 
-        if(!findComment){
-            return res.status(401).json({success: false, message: 'comment khong ton tai'})
+        if (!findComment) {
+            return res.status(401).json({ success: false, message: 'comment khong ton tai' })
         }
 
-        if(idUser !== findComment.idUser){
-            return res.status(401).json({success: false, message: 'comment nay khong so huu'})
+        if (idUser !== findComment.idUser) {
+            return res.status(401).json({ success: false, message: 'comment nay khong so huu' })
         }
 
         //Del comment
         await CommentModule.findByIdAndDelete(id)
 
-        return res.status(200).json({success: true, message: 'del comment success'})
+        return res.status(200).json({ success: true, message: 'del comment success' })
     } catch (error) {
 
     }
