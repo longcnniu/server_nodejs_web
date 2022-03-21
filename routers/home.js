@@ -12,7 +12,7 @@ const ViewsModule = require('../models/view')
 
 //=========================================================
 router.get('/', middlewareCntroller.verifyToken, (req, res, next) => {
-    return res.status(200).json({ success: true, role: req.user.role })
+    return res.status(200).json({ success: true, role: req.user.role, UserId: req.user.userId })
 })
 
 //=========================================================
@@ -58,13 +58,69 @@ router.post('/post', middlewareCntroller.verifyTokenAndStaffAuth, async (req, re
 })
 
 //put bai
-router.post('/post/:id', middlewareCntroller.verifyToken, (req, res) => {
+router.put('/post/:id', middlewareCntroller.verifyToken, async(req, res) => {
+    const id = req.params.id
+    const UserId = req.user.userId
+    const name = req.user.name
+    const { title, content, category } = req.body
 
+    if (!title || !content) {
+        return res.status(401).json({ success: false, message: 'thieu tieu de va noi dung' })
+    }
+
+    try {
+        const findPost = await PostsModule.findById(id)
+
+        if(!findPost){
+            return res.status(400).json({ success: false, message: 'Không tìm thấy bài viết' }) 
+        }
+
+        if(findPost.UserId !== UserId) {
+            return res.status(400).json({ success: false, message: 'Không có quyền Updata' }) 
+        }
+
+        const updataPost = await PostsModule.findByIdAndUpdate({_id: id},{UserId, name, title, content, category})
+
+        if(!updataPost){
+            return res.status(400).json({ success: false, message: 'Updata Post error' }) 
+        }
+
+        return res.status(200).json({ success: true, message: 'Updata Post successfully' })
+    } catch (error) {
+        return res.status(500).json({ success: true, message: 'loi server' })
+    }
 })
 
 //Del bai
-router.delete('/post/:id', (req, res) => {
+router.delete('/post/:id', middlewareCntroller.verifyToken, async (req, res) => {
+    const id = req.params.id
+    const role = req.user.role
+    const idUser = req.user.userId
 
+    try {
+
+        const data = await PostsModule.findById(id)
+
+        if (!data) {
+            return res.status(400).json({ success: false, message: 'Bai viet khong ton tai' })
+        }
+
+        if (idUser === data.UserId || role === 'admin' || role === 'qa-manager') {
+            await PostsModule.findByIdAndDelete(id)
+
+            //Del Vote cua bai Post
+            await VotesModule.findOneAndDelete({PostId: id})
+            //Del View cua bai Post
+            await ViewsModule.findOneAndDelete({PostId: id})
+            //all good
+            return res.status(200).json({ success: true, message: 'xoa thanh cong' })
+        }
+
+        return res.status(400).json({ success: false, message: 'Bạn không đủ quyền để xóa' })
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'loi server' })
+    }
 })
 
 //Xem chi tiết Post
