@@ -58,7 +58,7 @@ router.post('/post', middlewareCntroller.verifyTokenAndStaffAuth, async (req, re
 })
 
 //put bai
-router.put('/post/:id', middlewareCntroller.verifyToken, async(req, res) => {
+router.put('/post/:id', middlewareCntroller.verifyToken, async (req, res) => {
     const id = req.params.id
     const UserId = req.user.userId
     const name = req.user.name
@@ -71,18 +71,18 @@ router.put('/post/:id', middlewareCntroller.verifyToken, async(req, res) => {
     try {
         const findPost = await PostsModule.findById(id)
 
-        if(!findPost){
-            return res.status(400).json({ success: false, message: 'Không tìm thấy bài viết' }) 
+        if (!findPost) {
+            return res.status(400).json({ success: false, message: 'Không tìm thấy bài viết' })
         }
 
-        if(findPost.UserId !== UserId) {
-            return res.status(400).json({ success: false, message: 'Không có quyền Updata' }) 
+        if (findPost.UserId !== UserId) {
+            return res.status(400).json({ success: false, message: 'Không có quyền Updata' })
         }
 
-        const updataPost = await PostsModule.findByIdAndUpdate({_id: id},{UserId, name, title, content, category})
+        const updataPost = await PostsModule.findByIdAndUpdate({ _id: id }, { UserId, name, title, content, category })
 
-        if(!updataPost){
-            return res.status(400).json({ success: false, message: 'Updata Post error' }) 
+        if (!updataPost) {
+            return res.status(400).json({ success: false, message: 'Updata Post error' })
         }
 
         return res.status(200).json({ success: true, message: 'Updata Post successfully' })
@@ -109,9 +109,11 @@ router.delete('/post/:id', middlewareCntroller.verifyToken, async (req, res) => 
             await PostsModule.findByIdAndDelete(id)
 
             //Del Vote cua bai Post
-            await VotesModule.findOneAndDelete({PostId: id})
+            await VotesModule.deleteMany({ PostId: id })
             //Del View cua bai Post
-            await ViewsModule.findOneAndDelete({PostId: id})
+            await ViewsModule.deleteMany({ PostId: id })
+            //Del Comment cua bai Post
+            await CommentModule.deleteMany({ idPost: id });
             //all good
             return res.status(200).json({ success: true, message: 'xoa thanh cong' })
         }
@@ -185,6 +187,31 @@ router.post('/post-comment/:id', middlewareCntroller.verifyToken, async (req, re
         return res.status(200).json({ success: true, message: 'comment thanh cong' })
     } catch (error) {
         return res.status(500).json({ success: false, message: 'loi server' })
+    }
+})
+
+//Del Comment
+router.delete('/del-comment/:id', middlewareCntroller.verifyToken, async (req, res) => {
+    const id = req.params.id
+    const idUser = req.user.userId
+
+    try {
+        const findComment = await CommentModule.findOne({_id: id})
+
+        if(!findComment){
+            return res.status(401).json({success: false, message: 'comment khong ton tai'})
+        }
+
+        if(idUser !== findComment.idUser){
+            return res.status(401).json({success: false, message: 'comment nay khong so huu'})
+        }
+
+        //Del comment
+        await CommentModule.findByIdAndDelete(id)
+
+        return res.status(200).json({success: true, message: 'del comment success'})
+    } catch (error) {
+
     }
 })
 
