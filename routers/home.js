@@ -7,6 +7,8 @@ var router = express.Router()
 //DB models
 const PostsModule = require('../models/post')
 const CommentModule = require('../models/comment')
+const VotesModule = require('../models/vote')
+const ViewsModule = require('../models/view')
 
 //=========================================================
 router.get('/', middlewareCntroller.verifyToken, (req, res, next) => {
@@ -23,6 +25,7 @@ router.get('/post', middlewareCntroller.verifyToken, (req, res) => {
 router.get('/all-post', middlewareCntroller.verifyToken, async (req, res) => {
     try {
         const dataPost = await PostsModule.find()
+
         if (!dataPost) {
             return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
         }
@@ -129,19 +132,79 @@ router.post('/post-comment/:id', middlewareCntroller.verifyToken, async (req, re
     }
 })
 
-////=========================================================
+//=========================================================
 //Get vote for a post
-router.get('/post-vote', middlewareCntroller.verifyToken, async (req, res) => {
+router.get('/post-vote/:id', middlewareCntroller.verifyToken, async (req, res) => {
 
-    // const id = req.params.id
-    // const idUser = req.user.userId
+    const id = req.params.id
+    const idUser = req.user.userId
 
     try {
-        const commentData = await CommentModule.find().count()
+        const VoteData = await VotesModule.find({ UserId: idUser, PostId: id })
 
-        return res.json(commentData)
+        return res.json(VoteData)
     } catch (error) {
         return res.status(500).json({ success: false, message: 'loi server' })
     }
 })
+
+//POST vote
+router.post('/post-vote/:id', middlewareCntroller.verifyToken, async (req, res) => {
+
+    const id = req.params.id
+    const idUser = req.user.userId
+    const name = req.user.name
+
+    try {
+        const CheckData = await VotesModule.find({ UserId: idUser, PostId: id })
+
+        if (CheckData.length != 0) {
+            await VotesModule.findOneAndDelete({ UserId: idUser, PostId: id })
+            //Trừ -1 vote
+            const dataPost = await PostsModule.find({ _id: id })
+            const numbervote = dataPost[0].numberVote - 1
+            await PostsModule.findOneAndUpdate({ _id: id }, { numberVote: numbervote })
+
+            return res.status(200).json({ success: true, message: 'Bạn đã hủy Vote' })
+        }
+
+        const dataVote = await VotesModule({ UserId: idUser, PostId: id, name: name })
+        await dataVote.save()
+        //cộng 1 vote
+        const dataPost = await PostsModule.find({ _id: id })
+        const numbervote = dataPost[0].numberVote + 1
+        await PostsModule.findOneAndUpdate({ _id: id }, { numberVote: numbervote })
+
+        return res.status(200).json({ success: true, message: 'vote thanh cong' })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'loi server' })
+    }
+})
+//=========================================================
+//POST views
+router.post('/post-view/:id', middlewareCntroller.verifyToken, async (req, res) => {
+    const id = req.params.id
+    const idUser = req.user.userId
+    const name = req.user.name
+
+    try {
+        const CheckData = await ViewsModule.find({ UserId: idUser, PostId: id })
+
+        if (CheckData.length != 0) {
+            return res.status(200).json({ success: true, message: 'Bạn đã view' })
+        }
+
+        const dataVote = await ViewsModule({ UserId: idUser, PostId: id, name: name })
+        await dataVote.save()
+        //cộng 1 view
+        const dataPost = await PostsModule.find({ _id: id })
+        const numbervote = dataPost[0].numberView + 1
+        await PostsModule.findOneAndUpdate({ _id: id }, { numberView: numbervote })
+
+        return res.status(200).json({ success: true, message: 'view thanh cong' })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'loi server' })
+    }
+})
+
 module.exports = router

@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const VotesSchema = new Schema({
+const ViewsSchema = new Schema({
     UserId: {
         type: String,
         query: true
@@ -22,5 +22,5 @@ const VotesSchema = new Schema({
     },
 });
 
-const VotesModule = mongoose.model('Votes', VotesSchema);
-module.exports = VotesModule
+const ViewsModule = mongoose.model('Views', ViewsSchema);
+module.exports = ViewsModule
