@@ -15,6 +15,10 @@ const CategorySchema = new Schema({
   endDate: {
     type: Date,
     query: true
+  },
+  lockDate: {
+    type: Date,
+    query: true
   }
 });
 

@@ -3,7 +3,6 @@ const middlewareCntroller = require('../controllers/middlewareController')
 
 var router = express.Router()
 
-
 //DB models
 const PostsModule = require('../models/post')
 const CommentModule = require('../models/comment')
@@ -21,16 +20,61 @@ router.get('/post', middlewareCntroller.verifyToken, (req, res) => {
     return res.status(200).json({ success: true, role: req.user.role })
 })
 
-//get all Post
-router.get('/all-post', middlewareCntroller.verifyToken, async (req, res) => {
+
+//get  Post page
+router.get('/posts', middlewareCntroller.verifyToken, async (req, res) => {
+    const page_size = req.query.page_size
     const page = req.query.page
 
-    if (page) {
+    if (page && page > 0 && page_size != undefined) {
+        try {
+            var skipPost = (parseInt(page) - 1) * parseInt(page_size)
 
-    } else {
+            const dataPost = await PostsModule.find().skip(skipPost).limit(page_size)
 
+            if (!dataPost) {
+                return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
+            }
+
+            return res.status(200).json({ success: true, dataPost: dataPost })
+        } catch (error) {
+            return res.status(500).json({ success: false, message: 'loi server ' + error })
+        }
+    } else if (page && page > 0 && page_size == undefined) {
+        try {
+            var skipPost = (parseInt(page) - 1) * parseInt(5)
+
+            const dataPost = await PostsModule.find().skip(skipPost).limit(5)
+
+            if (!dataPost) {
+                return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
+            }
+
+            return res.status(200).json({ success: true, dataPost: dataPost })
+        } catch (error) {
+            return res.status(500).json({ success: false, message: 'loi server ' + error })
+        }
     }
-    
+    else {
+        try {
+            const page = 1
+            var skipPost = (page - 1) * 5
+
+            const dataPost = await PostsModule.find().skip(skipPost).limit(5)
+
+            if (!dataPost) {
+                return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
+            }
+
+            return res.status(200).json({ success: true, dataPost: dataPost })
+        } catch (error) {
+            return res.status(500).json({ success: false, message: 'loi server ' + error })
+        }
+    }
+})
+
+//get all post
+router.get('/all-posts', middlewareCntroller.verifyToken, async (req, res) => {
     try {
         const dataPost = await PostsModule.find()
 
