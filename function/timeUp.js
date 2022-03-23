@@ -8,7 +8,7 @@ const arrayEndDateTitile = []
 const myTimeout = setInterval(function () {
     checkEnddate()
     checkLockDate()
-}, 1800000);
+}, 3600000);
 
 const checkEnddate = async () => {
     const d = new Date()
