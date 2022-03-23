@@ -8,14 +8,14 @@ const arrayEndDateTitile = []
 const myTimeout = setInterval(function () {
     checkEnddate()
     checkLockDate()
-}, 60000);
+}, 1800000);
 
 const checkEnddate = async () => {
     const d = new Date()
     const UTCnow = d.getUTCFullYear() + '-' + ("0" + (d.getUTCMonth() + 1)).slice(-2) + '-' + ("0" + (d.getUTCDate())).slice(-2) + 'T' + ("0" + (d.getUTCHours())).slice(-2) + ':' + ("0" + (d.getUTCMinutes())).slice(-2)
 
     try {
-        const dataEndDate = await CategoryModule.find({ $and: [{ endDate: { $gte: UTCnow }, ischeckEndDate: false }] }).sort({ endDate: 1 })
+        const dataEndDate = await CategoryModule.find({ ischeckEndDate: false }).sort({ endDate: 1 })
 
         if (dataEndDate.length != 0) {
             //Get endDate
@@ -50,7 +50,7 @@ const checkLockDate = async () => {
     const UTCnow = d.getUTCFullYear() + '-' + ("0" + (d.getUTCMonth() + 1)).slice(-2) + '-' + ("0" + (d.getUTCDate())).slice(-2) + 'T' + ("0" + (d.getUTCHours())).slice(-2) + ':' + ("0" + (d.getUTCMinutes())).slice(-2)
 
     try {
-        const dataLockDate = await CategoryModule.find({ $and: [{ lockDate: { $gte: UTCnow }, ischecklLockDate: false }] }).sort({ lockDate: 1 })
+        const dataLockDate = await CategoryModule.find({ ischecklLockDate: false }).sort({ lockDate: 1 })
 
         if (dataLockDate != 0) {
             //get lockDate
