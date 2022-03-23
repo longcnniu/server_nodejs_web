@@ -16,6 +16,9 @@ const adminRouter = require('./routers/admin')
 const QaManagerRouter = require('./routers/qaManager')
 const CategorysRouter = require('./routers/category')
 
+//models
+const Time = require('./function/timeUp')
+
 dotenv.config()
 
 //conet DB
@@ -48,9 +51,9 @@ const PORT = 5000
 //chong DOS DDOS
 const limiter = rateLimit({
   // 15 minutes
-    windowMs: 5 * 60 * 1000,
+    windowMs: 1 * 60 * 1000,
   // limit each IP to 100 requests per windowMs
-    max: 100,
+    max: 1000,
     message: {
       message: "Too many requests from this IP, please try again in 1 minutes"
     }
@@ -69,7 +72,9 @@ app.use('/',adminRouter)
 app.use('/',QaManagerRouter)
 app.use('/',CategorysRouter)
 
+Time
 //them port chon len heroko
 app.listen(process.env.PORT || PORT, () => {
   console.log(`Example app listening on port ${process.env.PORT} vs ${PORT}`)
 })
+

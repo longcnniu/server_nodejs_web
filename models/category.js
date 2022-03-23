@@ -19,6 +19,16 @@ const CategorySchema = new Schema({
   lockDate: {
     type: Date,
     query: true
+  },
+  ischeckEndDate: {
+    type: Boolean,
+    query: true,
+    default: false
+  },
+  ischecklLockDate: {
+    type: Boolean,
+    query: true,
+    default: false
   }
 });
 

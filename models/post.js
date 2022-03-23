@@ -38,6 +38,16 @@ const PostsSchema = new Schema({
     query: true,
     default: 0
   },
+  lockPost: {
+    type: Boolean,
+    query: true,
+    default: false
+  },
+  endTime1: {
+    type: Boolean,
+    query: true,
+    default: false
+  }
 });
 
 const PostsModule = mongoose.model('Posts', PostsSchema);
