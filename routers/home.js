@@ -33,12 +33,12 @@ router.get('/posts', middlewareCntroller.verifyToken, async (req, res) => {
             const dataPost = await PostsModule.find().skip(skipPost).limit(page_size)
 
             if (!dataPost) {
-                return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
+                return res.status(400).json({ success: false, message: 'There are no posts yet' })
             }
 
             return res.status(200).json({ success: true, dataPost: dataPost })
         } catch (error) {
-            return res.status(500).json({ success: false, message: 'loi server ' + error })
+            return res.status(500).json({ success: false, message: 'Error server ' + error })
         }
     } else if (page && page > 0 && page_size == undefined) {
         try {
@@ -47,12 +47,12 @@ router.get('/posts', middlewareCntroller.verifyToken, async (req, res) => {
             const dataPost = await PostsModule.find().skip(skipPost).limit(5)
 
             if (!dataPost) {
-                return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
+                return res.status(400).json({ success: false, message: 'There are no posts yet' })
             }
 
             return res.status(200).json({ success: true, dataPost: dataPost })
         } catch (error) {
-            return res.status(500).json({ success: false, message: 'loi server ' + error })
+            return res.status(500).json({ success: false, message: 'Error server ' + error })
         }
     }
     else {
@@ -63,12 +63,12 @@ router.get('/posts', middlewareCntroller.verifyToken, async (req, res) => {
             const dataPost = await PostsModule.find().skip(skipPost).limit(5)
 
             if (!dataPost) {
-                return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
+                return res.status(400).json({ success: false, message: 'There are no posts yet' })
             }
 
             return res.status(200).json({ success: true, dataPost: dataPost })
         } catch (error) {
-            return res.status(500).json({ success: false, message: 'loi server ' + error })
+            return res.status(500).json({ success: false, message: 'Error server ' + error })
         }
     }
 })
@@ -79,12 +79,12 @@ router.get('/all-posts', middlewareCntroller.verifyToken, async (req, res) => {
         const dataPost = await PostsModule.find()
 
         if (!dataPost) {
-            return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
+            return res.status(400).json({ success: false, message: 'There are no posts yet' })
         }
 
         return res.status(200).json({ success: true, dataPost: dataPost })
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' })
+        return res.status(500).json({ success: false, message: 'Error server' })
     }
 })
 
@@ -95,7 +95,7 @@ router.post('/post', middlewareCntroller.verifyTokenAndStaffAuth, async (req, re
     const { title, content, category } = req.body
 
     if (!title || !content) {
-        return res.status(401).json({ success: false, message: 'thieu tieu de va noi dung' })
+        return res.status(401).json({ success: false, message: 'Missing Title or Content' })
     }
 
     try {
@@ -104,12 +104,12 @@ router.post('/post', middlewareCntroller.verifyTokenAndStaffAuth, async (req, re
 
         return res.status(200).json({ success: true, message: 'Created Post successfully' })
     } catch (error) {
-        return res.status(500).json({ success: true, message: 'loi server' })
+        return res.status(500).json({ success: true, message: 'Error server' })
     }
 
 })
 
-//put bai
+//post bai
 router.put('/post/:id', middlewareCntroller.verifyToken, async (req, res) => {
     const id = req.params.id
     const UserId = req.user.userId
@@ -117,29 +117,29 @@ router.put('/post/:id', middlewareCntroller.verifyToken, async (req, res) => {
     const { title, content, category } = req.body
 
     if (!title || !content) {
-        return res.status(401).json({ success: false, message: 'thieu tieu de va noi dung' })
+        return res.status(401).json({ success: false, message: 'Missing Title or Content' })
     }
 
     try {
         const findPost = await PostsModule.findById(id)
 
         if (!findPost) {
-            return res.status(400).json({ success: false, message: 'Không tìm thấy bài viết' })
+            return res.status(400).json({ success: false, message: 'Posts not found' })
         }
 
         if (findPost.UserId !== UserId) {
-            return res.status(400).json({ success: false, message: 'Không có quyền Updata' })
+            return res.status(400).json({ success: false, message: 'You do not have permission to update' })
         }
 
         const updataPost = await PostsModule.findByIdAndUpdate({ _id: id }, { UserId, name, title, content, category })
 
         if (!updataPost) {
-            return res.status(400).json({ success: false, message: 'Updata Post error' })
+            return res.status(400).json({ success: false, message: 'Update Post error' })
         }
 
-        return res.status(200).json({ success: true, message: 'Updata Post successfully' })
+        return res.status(200).json({ success: true, message: 'Update Post successfully' })
     } catch (error) {
-        return res.status(500).json({ success: true, message: 'loi server' })
+        return res.status(500).json({ success: true, message: 'Error server' })
     }
 })
 
@@ -154,7 +154,7 @@ router.delete('/post/:id', middlewareCntroller.verifyToken, async (req, res) => 
         const data = await PostsModule.findById(id)
 
         if (!data) {
-            return res.status(400).json({ success: false, message: 'Bai viet khong ton tai' })
+            return res.status(400).json({ success: false, message: 'Post does not exist' })
         }
 
         if (idUser === data.UserId || role === 'admin' || role === 'qa-manager') {
@@ -167,13 +167,13 @@ router.delete('/post/:id', middlewareCntroller.verifyToken, async (req, res) => 
             //Del Comment cua bai Post
             await CommentModule.deleteMany({ idPost: id });
             //all good
-            return res.status(200).json({ success: true, message: 'xoa thanh cong' })
+            return res.status(200).json({ success: true, message: 'Delete successfull' })
         }
 
-        return res.status(400).json({ success: false, message: 'Bạn không đủ quyền để xóa' })
+        return res.status(400).json({ success: false, message: 'You do not have permission to delete' })
 
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' })
+        return res.status(500).json({ success: false, message: 'Error server' })
     }
 })
 
@@ -183,12 +183,12 @@ router.get('/post/:id', middlewareCntroller.verifyToken, async (req, res) => {
     try {
         const dataPost = await PostsModule.findById(id)
         if (!dataPost) {
-            return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
+            return res.status(400).json({ success: false, message: 'There are no posts yet' })
         }
 
         return res.status(200).json({ success: true, dataPost: dataPost })
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' })
+        return res.status(500).json({ success: false, message: 'Error server' })
     }
 })
 
@@ -216,7 +216,7 @@ router.get('/post-comment/:id', middlewareCntroller.verifyToken, async (req, res
             }
         }
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' })
+        return res.status(500).json({ success: false, message: 'Error server' })
     }
 })
 
@@ -229,16 +229,16 @@ router.post('/post-comment/:id', middlewareCntroller.verifyToken, async (req, re
     const name = req.user.name
 
     if (!comment) {
-        return res.status(401).json({ message: 'thieu noi dung binh luan' })
+        return res.status(401).json({ message: 'Missing comment' })
     }
 
     try {
         const commentData = await CommentModule({ comment, idUser, idPost: id, name })
         await commentData.save()
 
-        return res.status(200).json({ success: true, message: 'comment thanh cong' })
+        return res.status(200).json({ success: true, message: 'comment successfull' })
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' })
+        return res.status(500).json({ success: false, message: 'Error server' })
     }
 })
 
@@ -251,11 +251,11 @@ router.delete('/del-comment/:id', middlewareCntroller.verifyToken, async (req, r
         const findComment = await CommentModule.findOne({ _id: id })
 
         if (!findComment) {
-            return res.status(401).json({ success: false, message: 'comment khong ton tai' })
+            return res.status(401).json({ success: false, message: 'comment does not exist' })
         }
 
         if (idUser !== findComment.idUser) {
-            return res.status(401).json({ success: false, message: 'comment nay khong so huu' })
+            return res.status(401).json({ success: false, message: 'This comment is not your owned' })
         }
 
         //Del comment
@@ -279,7 +279,7 @@ router.get('/post-vote/:id', middlewareCntroller.verifyToken, async (req, res) =
 
         return res.json(VoteData)
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' })
+        return res.status(500).json({ success: false, message: 'Error server' })
     }
 })
 
@@ -300,7 +300,7 @@ router.post('/post-vote/:id', middlewareCntroller.verifyToken, async (req, res) 
             const numbervote = dataPost[0].numberVote - 1
             await PostsModule.findOneAndUpdate({ _id: id }, { numberVote: numbervote })
 
-            return res.status(200).json({ success: true, message: 'Bạn đã hủy Vote' })
+            return res.status(200).json({ success: true, message: 'Canceled your vote successfull' })
         }
 
         const dataVote = await VotesModule({ UserId: idUser, PostId: id, name: name })
@@ -310,9 +310,9 @@ router.post('/post-vote/:id', middlewareCntroller.verifyToken, async (req, res) 
         const numbervote = dataPost[0].numberVote + 1
         await PostsModule.findOneAndUpdate({ _id: id }, { numberVote: numbervote })
 
-        return res.status(200).json({ success: true, message: 'vote thanh cong' })
+        return res.status(200).json({ success: true, message: 'Vote successfull' })
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' })
+        return res.status(500).json({ success: false, message: 'Error server' })
     }
 })
 //=========================================================
@@ -326,7 +326,7 @@ router.post('/post-view/:id', middlewareCntroller.verifyToken, async (req, res) 
         const CheckData = await ViewsModule.find({ UserId: idUser, PostId: id })
 
         if (CheckData.length != 0) {
-            return res.status(200).json({ success: true, message: 'Bạn đã view' })
+            return res.status(200).json({ success: true, message: 'You have viewed' })
         }
 
         const dataVote = await ViewsModule({ UserId: idUser, PostId: id, name: name })
@@ -336,9 +336,9 @@ router.post('/post-view/:id', middlewareCntroller.verifyToken, async (req, res) 
         const numbervote = dataPost[0].numberView + 1
         await PostsModule.findOneAndUpdate({ _id: id }, { numberView: numbervote })
 
-        return res.status(200).json({ success: true, message: 'view thanh cong' })
+        return res.status(200).json({ success: true, message: 'View successfull' })
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' })
+        return res.status(500).json({ success: false, message: 'Error server' })
     }
 })
 

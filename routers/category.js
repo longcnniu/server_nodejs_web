@@ -18,14 +18,14 @@ router.post('/category', middlewareCntroller.verifyTokenAndQAAuth, async (req, r
     const lockDate = req.body.lockDate
 
     if (!title || !endDate || !lockDate) {
-        res.status(401).json({ success: false, message: 'thieu tieu de or ngay het hang' })
+        res.status(401).json({ success: false, message: 'Missing title or expired day' })
     }
 
     try {
         //check ex in db
         const category = await CategoryModule.findOne({title: title})
         if(category) {
-            return res.status(401).json({ success: false, message: 'Category da ton tai' })
+            return res.status(401).json({ success: false, message: 'Category already exist' })
         }
 
         const saveCategory = await CategoryModule({ title, endDate, lockDate })
@@ -34,7 +34,7 @@ router.post('/category', middlewareCntroller.verifyTokenAndQAAuth, async (req, r
         //all ok
         return res.status(200).json({ success: true, message: 'Save category success '+endDate })
     } catch (error) {
-        return res.status(401).json({ success: false, message: 'error server' })
+        return res.status(401).json({ success: false, message: 'Server error' })
     }
 })
 
@@ -45,13 +45,13 @@ router.get('/all-category', middlewareCntroller.verifyTokenAndQAAuth, async (req
         const categorys = await CategoryModule.find()
 
         if (categorys == '') {
-            return res.status(200).json({ message: 'Chua co category', success: false })
+            return res.status(200).json({ message: 'No Category yet', success: false })
         }
 
         res.status(200).json({ dataCategorys: categorys, success: true })
 
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' + error })
+        return res.status(500).json({ success: false, message: 'Server error' + error })
     }
 })
 
@@ -62,13 +62,13 @@ router.get('/all-category/exp', middlewareCntroller.verifyToken, async (req, res
         const categorys = await CategoryModule.find({endDate: {$gt: Date.now()}})
 
         if (categorys == '') {
-            return res.status(200).json({ message: 'Chua co category', success: false })
+            return res.status(200).json({ message: 'Category does not exist', success: false })
         }
 
         res.status(200).json({ dataCategorys: categorys, success: true })
 
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' + error })
+        return res.status(500).json({ success: false, message: 'Error server' + error })
     }
 })
 
@@ -80,7 +80,7 @@ router.get('/category/:id', middlewareCntroller.verifyTokenAndQAAuth,async (req,
         const data = await CategoryModule.findById({ _id: id })
   
         if (!data) {
-            return res.status(401).json({ success: false, message: 'Categoy khong ton tai' })
+            return res.status(401).json({ success: false, message: 'Category does not exist' })
         }
   
         return res.status(200).json({ success: true, data})
@@ -100,10 +100,10 @@ router.put('/category/:id', middlewareCntroller.verifyTokenAndQAAuth, async (req
         const data = await CategoryModule.findByIdAndUpdate({ _id: `${id}` }, {title, endDate, lockDate})
   
         if (!data) {
-            return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
+            return res.status(401).json({ success: false, message: 'Account does not exist' })
         }
   
-        return res.status(200).json({ success: true, message: 'cap nhat thanh cong' })
+        return res.status(200).json({ success: true, message: 'Update Successfull' })
     } catch (error) {
         res.json(error)
     }
@@ -116,10 +116,10 @@ router.delete('/category/:id', middlewareCntroller.verifyTokenAndQAAuth, async (
         const data = await CategoryModule.findByIdAndDelete({ _id: `${id}` })
 
         if (!data) {
-            return res.status(401).json({ success: false, message: 'Category khong ton tai' })
+            return res.status(401).json({ success: false, message: 'Category does not exist' })
         }
 
-        return res.status(200).json({ success: true, message: 'xoa thanh cong' })
+        return res.status(200).json({ success: true, message: 'Delete' })
     } catch (error) {
         res.json(error)
     }

@@ -54,34 +54,23 @@ router.post('/registration', async (req, res) => {
     // const refreshToken = await jwt.sign({ userId: newUser._id, role: newUser.role, email: newUser.email}, process.env.REFRESTOKEN_MK, { expiresIn: "15m" })
     return res.status(200).json({ success: true, message: 'Created successfully' })
   } catch (error) {
-    return res.status(500).json({ success: false, message: 'loi server' })
+    return res.status(500).json({ success: false, message: 'Server error' })
   }
 })
 //===================================================================================================
 
 
 router.post('/login',// username must be an email
-  check('email').isEmail().withMessage('Enter the correct email format'),
-  check('password')
-    .isLength({ min: 5 })
-    .withMessage('must be at least 5 chars long')
-    .matches(/\d/)
-    .withMessage('must contain a number'),
   async (req, res) => {
-    // Finds the validation errors in this request and wraps them in an object with handy functions
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
+    
     const { email, password } = req.body
 
     if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Missing email and/or passwoed' })
+      return res.status(400).json({ success: false, message: 'Missing email and/or password' })
     }
 
     try {
-      //check for axisting user
+      //check for existing user
       const user = await AccountModel.findOne({ email })
       if (!user) {
         return res.status(400).json({ success: false, message: 'Account does not exist' })
@@ -104,7 +93,7 @@ router.post('/login',// username must be an email
       // })
       return res.status(200).json({ success: true, message: 'User logged in successfully', accessToken: accessToken})
     } catch (error) {
-      return res.status(500).json({ success: false, message: 'loi server' })
+      return res.status(500).json({ success: false, message: 'Server error' })
     }
   })
 //===================================================================================================
@@ -136,7 +125,7 @@ router.post('/forgot-password', async (req, res, next) => {
       let currentTime = new Date().getTime()
       let diff = dataOTP.expiresAt - currentTime
       if (diff > 0) {
-        return res.json({ message: 'Sau 5p moi co the nhan email' })
+        return res.json({ message: 'Can be received email after 5 minutes ' })
       }
     }
 
@@ -726,7 +715,7 @@ router.post('/forgot-password', async (req, res, next) => {
       }
     });
   } catch (error) {
-    return res.status(500).json({ success: false, message: 'loi server' + error })
+    return res.status(500).json({ success: false, message: 'Server error' + error })
   }
 })
 
@@ -747,22 +736,22 @@ router.post('/send-otp', async (req, res, next) => {
     //check OTP
     if (diff < 0) {
       await OTPModel.findOneAndDelete({ email })
-      return res.status(400).json({ message: 'OTP Het hang', success: false })
+      return res.status(400).json({ message: 'OTP expired', success: false })
     }
     if (otp != dataOTP.OTP) {
       console.log(dataOTP.OTP);
-      return res.status(400).json({ message: 'Ma OTP Khong hop le', success: false })
+      return res.status(400).json({ message: 'invalid OTP', success: false })
     }
 
     //All good
     const hashPassword = await argon2.hash(password)
     await AccountModel.findOneAndUpdate({ email }, { password: hashPassword })
     await OTPModel.findOneAndDelete({ email })
-    return res.status(200).json({ message: 'cap nha thanh cong', success: true })
+    return res.status(200).json({ message: 'Update successfully', success: true })
     //return res.redirect('/login')
 
   } catch (error) {
-    return res.status(500).json({ success: false, message: 'loi server' + error })
+    return res.status(500).json({ success: false, message: 'Server error' + error })
   }
 })
 //===================================================================================================
@@ -778,13 +767,13 @@ router.post('/del-account', middlewareCntroller.verifyTokenAndAdminAuth, async (
     const user = await AccountModel.findOneAndDelete({ email })
 
     if (!user) {
-      return res.status(400).json({ message: 'Email khong ton tai', success: false })
+      return res.status(400).json({ message: 'Email does not exits', success: false })
     }
 
     //All good
-    res.status(200).json({ message: 'Del Thanh cong', success: true })
+    res.status(200).json({ message: 'Delete success', success: true })
   } catch (error) {
-    return res.status(500).json({ success: false, message: 'loi server' + error })
+    return res.status(500).json({ success: false, message: 'Server error' + error })
   }
 })
 
@@ -796,13 +785,13 @@ router.get('/all-user', middlewareCntroller.verifyTokenAndAdminAuth, async (req,
     const user = await AccountModel.find({ role: ['staff', 'qa-manager'] })
 
     if (user == '') {
-      return res.status(200).json({ message: 'Chua co tai khoan', success: false })
+      return res.status(200).json({ message: 'No account yet', success: false })
     }
 
     res.status(200).json({ dataUsers: user, success: true })
 
   } catch (error) {
-    return res.status(500).json({ success: false, message: 'loi server' + error })
+    return res.status(500).json({ success: false, message: 'Server error' + error })
   }
 })
 
@@ -814,13 +803,13 @@ router.get('/all-user-qa', middlewareCntroller.verifyTokenAndQAAuth, async (req,
     const user = await AccountModel.find({ role: "staff" })
 
     if (user == '') {
-      return res.status(200).json({ message: 'Chua co tai khoan', success: false })
+      return res.status(200).json({ message: 'No account yet', success: false })
     }
 
     res.status(200).json({ dataUsers: user, success: true })
 
   } catch (error) {
-    return res.status(500).json({ success: false, message: 'loi server' + error })
+    return res.status(500).json({ success: false, message: 'Server error' + error })
   }
 })
 
@@ -837,7 +826,7 @@ router.get('/view-user/:id', middlewareCntroller.verifyTokenAndQAAuth, async (re
     const data = await AccountModel.findById({ _id: id })
 
     if (!data) {
-      return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
+      return res.status(401).json({ success: false, message: 'Account does not exist' })
     }
 
     return res.status(200).json({ success: true, data, roleAuth: roleAuth })
@@ -856,10 +845,10 @@ router.put('/view-user/:id', middlewareCntroller.verifyTokenAndQAAuth, async (re
     const data = await AccountModel.findByIdAndUpdate({ _id: `${id}` }, { email, role: role })
 
     if (!data) {
-      return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
+      return res.status(401).json({ success: false, message: 'Account does not exist' })
     }
 
-    return res.status(200).json({ success: true, message: 'cap nhat thanh cong' })
+    return res.status(200).json({ success: true, message: 'Update successfully' })
   } catch (error) {
     res.json(error)
   }
@@ -872,10 +861,10 @@ router.delete('/view-user/:id', middlewareCntroller.verifyTokenAndQAAuth, async 
     const data = await AccountModel.findByIdAndDelete({ _id: `${id}` })
 
     if (!data) {
-      return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
+      return res.status(401).json({ success: false, message: 'Account does not exist' })
     }
 
-    return res.status(200).json({ success: true, message: 'xoa thanh cong' })
+    return res.status(200).json({ success: true, message: 'Delete successfully' })
   } catch (error) {
     res.json(error)
   }
