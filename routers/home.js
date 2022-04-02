@@ -282,9 +282,9 @@ router.post('/post-comment/:id', middlewareCntroller.verifyToken, async (req, re
         var EmaiTo = dataUser.email;
 
         var transporter = nodemailer.createTransport({
-            service: 'gmail',
+            service: 'hotmail',
             auth: {
-                user: user,
+                user: user, // my mail
                 pass: pass
             }
         });
