@@ -27,6 +27,10 @@ const AccountSchema = new Schema({
   role: {
     type: String,
     query: true
+  },
+  Department: {
+    type: String,
+    query: true
   }
 });
 

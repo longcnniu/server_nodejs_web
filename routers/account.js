@@ -30,9 +30,9 @@ router.get('/registration', middlewareCntroller.verifyTokenAndQAAuth, (req, res)
 
 //registration user
 router.post('/registration', async (req, res) => {
-  const { email, password, role, firstName, lastName } = req.body
+  const { email, password, role, firstName, lastName, Department } = req.body
 
-  if (!email || !password || !role || !firstName || !lastName) {
+  if (!email || !password || !role || !firstName || !lastName || !Department) {
     return res.status(400).json({ success: false, message: 'Missing' })
   }
 
@@ -46,7 +46,7 @@ router.post('/registration', async (req, res) => {
 
     //All ok
     const hashPassword = await argon2.hash(password)
-    const newUser = new AccountModel({ email, password: hashPassword, role, firstName, lastName })
+    const newUser = new AccountModel({ email, password: hashPassword, role, firstName, lastName, Department })
     await newUser.save()
 
     //Return token
@@ -60,20 +60,8 @@ router.post('/registration', async (req, res) => {
 //===================================================================================================
 
 
-router.post('/login',// username must be an email
-  check('email').isEmail().withMessage('Enter the correct email format'),
-  check('password')
-    .isLength({ min: 5 })
-    .withMessage('must be at least 5 chars long')
-    .matches(/\d/)
-    .withMessage('must contain a number'),
-  async (req, res) => {
+router.post('/login', async (req, res) => {
     // Finds the validation errors in this request and wraps them in an object with handy functions
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
     const { email, password } = req.body
 
     if (!email || !password) {
@@ -107,8 +95,6 @@ router.post('/login',// username must be an email
       return res.status(500).json({ success: false, message: 'loi server' })
     }
   })
-//===================================================================================================
-//logOut
 //===================================================================================================
 //Forgot password
 router.get('/forgot-password', (req, res, next) => {
@@ -852,8 +838,12 @@ router.put('/view-user/:id', middlewareCntroller.verifyTokenAndQAAuth, async (re
   const id = req.params.id
   const role = req.body.role
   const email = req.body.email
+  const firstName = req.body.firstName
+  const lastName = req.body.lastName
+  const Department = req.body.Department
+
   try {
-    const data = await AccountModel.findByIdAndUpdate({ _id: `${id}` }, { email, role: role })
+    const data = await AccountModel.findByIdAndUpdate({ _id: `${id}` }, { email, role: role, Department, firstName, lastName })
 
     if (!data) {
       return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
