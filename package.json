@@ -1,7 +1,7 @@
 {
-  "name": "server02",
+  "name": "c",
   "version": "1.0.0",
-  "description": "",
+  "description": "Mon web cuoi nam",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -27,5 +27,13 @@
   "devDependencies": {
     "eslint-plugin-react-hooks": "^4.3.0",
     "nodemon": "^2.0.15"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/longcnniu/server_nodejs_web.git"
+  },
+  "bugs": {
+    "url": "https://github.com/longcnniu/server_nodejs_web/issues"
+  },
+  "homepage": "https://github.com/longcnniu/server_nodejs_web#readme"
 }
