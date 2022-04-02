@@ -275,6 +275,7 @@ router.post('/post-comment/:id', middlewareCntroller.verifyToken, async (req, re
         //Tra Chu bai Post
         const dataPost = await PostsModule.findById(id)
         const dataUser = await AccountModel.findById(dataPost.UserId)
+
         //send email
         var user = process.env.EMAIL;
         var pass = process.env.PASS;
