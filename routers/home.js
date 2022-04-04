@@ -1,8 +1,17 @@
 const express = require('express')
 const middlewareCntroller = require('../controllers/middlewareController')
 
-var router = express.Router()
+//API google Drive
+const {google} = require('googleapis');
+const fs = require('fs');
+const readline = require('readline');
+const CLIENT_ID = '900540161674-3l9grgvpf6mv503rl0abd26n4ld3aktv.apps.googleusercontent.com'
+const CLIENT_SECRET = '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'
+const REDIRECT_URI = 'https://developers.google.com/oauthplayground'
 
+const REFRESH_TOKEN = '1//04SGZnxk4IPllCgYIARAAGAQSNwF-L9IrnUnfDu1lHlCdeTfZ6zFphfur68YdqVLVATNPsoVhLrJKwrgI-PwTIOEERu5_Pv1WhDI'
+
+var router = express.Router()
 
 //DB models
 const PostsModule = require('../models/post')
@@ -11,6 +20,32 @@ const VotesModule = require('../models/vote')
 const ViewsModule = require('../models/view')
 const nodemailer = require("nodemailer");
 const AccountModel = require('../models/account')
+//=========================================================
+const oauth2Clint = new google.auth.OAuth2(
+    CLIENT_ID,
+    CLIENT_SECRET,
+    REDIRECT_URI
+)
+
+oauth2Clint.setCredentials({ refresh_token: REFRESH_TOKEN})
+
+const drive = google.drive({
+    version: 'v3',
+    auth: oauth2Clint
+})
+
+// const filePath = path.join(__dirname, 'girl.jpg')
+//Upload File
+router.post('/test', (req, res) => {
+    var data = new Buffer('');
+    req.on('data', function(chunk) {
+        data = Buffer.concat([data, chunk]);
+    });
+    req.on('end', function() {
+        req.rawBody = data;
+        next();
+    });
+})
 
 //=========================================================
 router.get('/', middlewareCntroller.verifyToken, (req, res, next) => {
@@ -282,7 +317,7 @@ router.post('/post-comment/:id', middlewareCntroller.verifyToken, async (req, re
         var EmaiTo = dataUser.email;
 
         var transporter = nodemailer.createTransport({
-            service: 'hotmail',
+            service: 'gmail',
             auth: {
                 user: user, // my mail
                 pass: pass
