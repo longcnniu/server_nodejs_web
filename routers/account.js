@@ -18,8 +18,6 @@ const middlewareCntroller = require("../controllers/middlewareController")
 //express validator
 const { check, validationResult } = require('express-validator');
 
-//cookie-parser
-const cookieParser = require('cookie-parser')
 
 
 //===================================================================================================

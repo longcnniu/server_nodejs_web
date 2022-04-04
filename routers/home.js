@@ -5,11 +5,14 @@ const middlewareCntroller = require('../controllers/middlewareController')
 const {google} = require('googleapis');
 const fs = require('fs');
 const readline = require('readline');
-const CLIENT_ID = '900540161674-3l9grgvpf6mv503rl0abd26n4ld3aktv.apps.googleusercontent.com'
-const CLIENT_SECRET = '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'
+const CLIENT_ID = '1089463953949-qmh89r40odhn584fv0f1aokvp1oqdfe7.apps.googleusercontent.com'
+const CLIENT_SECRET = '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'
 const REDIRECT_URI = 'https://developers.google.com/oauthplayground'
 
-const REFRESH_TOKEN = '1//04SGZnxk4IPllCgYIARAAGAQSNwF-L9IrnUnfDu1lHlCdeTfZ6zFphfur68YdqVLVATNPsoVhLrJKwrgI-PwTIOEERu5_Pv1WhDI'
+const REFRESH_TOKEN = '1//04Odp2Nye0_v_CgYIARAAGAQSNwF-L9IrX-AiAtw8_2o_vL4zk_VT_ldAx9SSDrRDOq19xf4RsL9fNAuIq4-rvk934emmLKJ8MEY'
+
+//Multre
+const multer  = require('multer')
 
 var router = express.Router()
 
@@ -20,6 +23,8 @@ const VotesModule = require('../models/vote')
 const ViewsModule = require('../models/view')
 const nodemailer = require("nodemailer");
 const AccountModel = require('../models/account')
+const {body} = require("express-validator");
+const {file} = require("googleapis/build/src/apis/file");
 //=========================================================
 const oauth2Clint = new google.auth.OAuth2(
     CLIENT_ID,
@@ -36,15 +41,58 @@ const drive = google.drive({
 
 // const filePath = path.join(__dirname, 'girl.jpg')
 //Upload File
-router.post('/test', (req, res) => {
-    var data = new Buffer('');
-    req.on('data', function(chunk) {
-        data = Buffer.concat([data, chunk]);
-    });
-    req.on('end', function() {
-        req.rawBody = data;
-        next();
-    });
+const fileStorageEngine = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, "./imges")
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() +"--"+file.originalname)
+    }
+})
+
+const uplaod = multer({ storage: fileStorageEngine })
+
+router.post('/test', uplaod.single('image'), async (req, res) => {
+
+    try {
+        const response = await drive.files.create({
+            requestBody: {
+                name: req.file.filename,
+                mimeType: 'image/jpg'
+            },
+            media: {
+                mimeType: 'image/jpg',
+                body: fs.createReadStream(`imges/${req.file.filename}`)
+            }
+        })
+
+        //Public
+        const fileId = response.data.id;
+        await drive.permissions.create({
+          fileId: fileId,
+          requestBody: {
+            role: 'reader',
+            type: 'anyone',
+          },
+        });
+    
+        /* 
+        webViewLink: View the file in browser
+        webContentLink: Direct download link 
+        */
+        const result = await drive.files.get({
+          fileId: fileId,
+          fields: 'webViewLink, webContentLink',
+        });
+        console.log(result.data);
+        
+    } catch (error) {
+        return res.status(502).json({message: 'server error: '+ error})
+    }
+})
+
+router.post('/doc', (req, res) => {
+    res.status(200).json({})
 })
 
 //=========================================================

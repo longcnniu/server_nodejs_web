@@ -2,11 +2,9 @@ const express = require('express')
 const rateLimit = require('express-rate-limit')
 const helmet = require('helmet')
 const bodyParser = require('body-parser')
-var cookieParser = require('cookie-parser')
 const mongoose = require('mongoose');
 const dotenv = require('dotenv')
 var cors = require('cors')
-var cookieParser = require('cookie-parser')
 
 //Routers
 const accountRouter = require('./routers/account')
@@ -36,7 +34,6 @@ connectDB()
 //===============================================================
 const app = express()
 app.use(cors())
-app.use(cookieParser())
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -62,7 +59,6 @@ const limiter = rateLimit({
 //================================================================
 //gồm 14 middleware nhỏ ở trong giúp xử lý, lọc các HTTP header độc hại (nhằm khai thác lỗ hổng XSS hay clickjacking, …).
 app.use(helmet())
-app.use(cookieParser())
 //================================================================
 //Router
 app.use('/',accountRouter)
