@@ -15,7 +15,8 @@ const CommentModule = require('../models/comment')
 const VotesModule = require('../models/vote')
 const ViewsModule = require('../models/view')
 const nodemailer = require("nodemailer");
-const AccountModel = require('../models/account')
+const AccountModel = require('../models/account');
+const DisLikeModule = require('../models/Dislike');
 //=========================================================
 
 //Upload File
@@ -54,8 +55,8 @@ router.delete('/del-img', async (req, res) => {
     const nameImg = req.body.nameImg
     let reqPath = path.join(__dirname, `../imges/${nameImg}`)
 
-    if(reqPath === null){
-        return res.status(400).json({message: 'Not found'})
+    if (reqPath === null) {
+        return res.status(400).json({ message: 'Not found' })
     }
 
     try {
@@ -84,7 +85,7 @@ router.get('/posts', middlewareCntroller.verifyToken, async (req, res) => {
     const page_size = req.query.page_size
     const page = req.query.page
 
-    if (page && page > 0 && page_size != undefined) {       
+    if (page && page > 0 && page_size != undefined) {
         try {
             var skipPost = (parseInt(page) - 1) * parseInt(page_size)
 
@@ -256,8 +257,10 @@ router.delete('/post/:id', middlewareCntroller.verifyToken, async (req, res) => 
         if (idUser === data.UserId || role === 'admin' || role === 'qa-manager') {
             await PostsModule.findByIdAndDelete(id)
 
-            //Del Vote cua bai Post
+            //Del Like cua bai Post
             await VotesModule.deleteMany({ PostId: id })
+            //Del Dislike cua Post
+            await DisLikeModule.deleteMany({PostId: id})
             //Del View cua bai Post
             await ViewsModule.deleteMany({ PostId: id })
             //Del Comment cua bai Post
@@ -297,20 +300,23 @@ router.get('/post-comment/:id', middlewareCntroller.verifyToken, async (req, res
     const idUser = req.user.userId
 
     try {
-        if (role == 'admin' || role == 'qa-manager') {
-            const commentData = await CommentModule.find({ idPost: id })
-            return res.status(200).json({ success: true, message: commentData })
-        } else if (role == 'staff') {
-            const dataPost = await PostsModule.findById(id)
-            //check có phải chủ bài không để show full comment
-            if (dataPost.UserId == idUser) {
-                const commentData = await CommentModule.find({ idPost: id })
-                return res.status(200).json({ success: true, message: commentData })
-            } else {
-                const commentData = await CommentModule.find({ $and: [{ idPost: id }, { idUser: idUser }] })
-                return res.status(200).json({ success: true, message: commentData })
-            }
-        }
+        // if (role == 'admin' || role == 'qa-manager') {
+        //     const commentData = await CommentModule.find({ idPost: id })
+        //     return res.status(200).json({ success: true, message: commentData })
+        // } else if (role == 'staff') {
+        //     const dataPost = await PostsModule.findById(id)
+        //     //check có phải chủ bài không để show full comment
+        //     if (dataPost.UserId == idUser) {
+        //         const commentData = await CommentModule.find({ idPost: id })
+        //         return res.status(200).json({ success: true, message: commentData })
+        //     } else {
+        //         const commentData = await CommentModule.find({ $and: [{ idPost: id }, { idUser: idUser }] })
+        //         return res.status(200).json({ success: true, message: commentData })
+        //     }
+        // }
+
+        const commentData = await CommentModule.find({ idPost: id })
+        return res.status(200).json({ success: true, message: commentData })
     } catch (error) {
         return res.status(500).json({ success: false, message: 'loi server' })
     }
@@ -412,38 +418,93 @@ router.get('/post-vote/:id', middlewareCntroller.verifyToken, async (req, res) =
     }
 })
 
-//POST vote
-router.post('/post-vote/:id', middlewareCntroller.verifyToken, async (req, res) => {
+//POST Like
+router.post('/post-Like/:id', middlewareCntroller.verifyToken, async (req, res) => {
 
     const id = req.params.id
     const idUser = req.user.userId
     const name = req.user.name
 
     try {
-        const CheckData = await VotesModule.find({ UserId: idUser, PostId: id })
+        const CheckDataLike = await VotesModule.find({ UserId: idUser, PostId: id })
+        const CheckDataDisLike = await DisLikeModule.find({ UserId: idUser, PostId: id })
 
-        if (CheckData.length != 0) {
+        if (CheckDataLike.length != 0) {
             await VotesModule.findOneAndDelete({ UserId: idUser, PostId: id })
             //Trừ -1 vote
             const dataPost = await PostsModule.find({ _id: id })
-            const numbervote = dataPost[0].numberVote - 1
-            await PostsModule.findOneAndUpdate({ _id: id }, { numberVote: numbervote })
+            const Like = dataPost[0].Like - 1
+            await PostsModule.findOneAndUpdate({ _id: id }, { Like: Like })
 
-            return res.status(200).json({ success: true, message: 'Bạn đã hủy Vote' })
+            return res.status(200).json({ success: true, message: 'Bạn đã hủy Like' })
+        }
+        
+        if(CheckDataDisLike.length != 0){
+            //Huy DisLike để chuyển Sang Like
+            await DisLikeModule.findOneAndDelete({ UserId: idUser, PostId: id })
+            //Trừ -1 Dislike
+            const dataPost = await PostsModule.find({ _id: id })
+            const DisLike = dataPost[0].DisLike - 1
+            await PostsModule.findOneAndUpdate({ _id: id }, { DisLike: DisLike })
         }
 
         const dataVote = await VotesModule({ UserId: idUser, PostId: id, name: name })
         await dataVote.save()
         //cộng 1 vote
         const dataPost = await PostsModule.find({ _id: id })
-        const numbervote = dataPost[0].numberVote + 1
-        await PostsModule.findOneAndUpdate({ _id: id }, { numberVote: numbervote })
+        const Like = dataPost[0].Like + 1
+        await PostsModule.findOneAndUpdate({ _id: id }, { Like: Like })
 
-        return res.status(200).json({ success: true, message: 'vote thanh cong' })
+        return res.status(200).json({ success: true, message: 'Like thanh cong' })
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' })
+        return res.status(500).json({ success: false, message: 'Server Error' })
     }
 })
+
+//click Dislick
+router.post('/post-DisLike/:id', middlewareCntroller.verifyToken, async (req, res) => {
+    const id = req.params.id
+    const idUser = req.user.userId
+    const name = req.user.name
+
+    try {
+
+        const CheckDataDisLike = await DisLikeModule.find({ UserId: idUser, PostId: id })
+        const CheckDataLike = await VotesModule.find({ UserId: idUser, PostId: id })
+
+        if(CheckDataDisLike.length != 0){
+            await DisLikeModule.findOneAndDelete({ UserId: idUser, PostId: id })
+            //Trừ -1 Dislike
+            const dataPost = await PostsModule.find({ _id: id })
+            const DisLike = dataPost[0].DisLike - 1
+            await PostsModule.findOneAndUpdate({ _id: id }, { DisLike: DisLike })
+
+            return res.status(200).json({ success: true, message: 'Bạn đã hủy Dislike' })
+        }
+
+        if (CheckDataLike.length != 0) {
+            //hủy like chuyển thành Dislike
+            await VotesModule.findOneAndDelete({ UserId: idUser, PostId: id })
+            //Trừ -1 vote
+            const dataPost = await PostsModule.find({ _id: id })
+            const Like = dataPost[0].Like - 1
+            await PostsModule.findOneAndUpdate({ _id: id }, { Like: Like })
+
+        }
+
+        const dataDisLike = await DisLikeModule({ UserId: idUser, PostId: id, name: name })
+        await dataDisLike.save()
+        //cộng 1 DisLike
+        const dataPost = await PostsModule.find({ _id: id })
+        const DisLike = dataPost[0].DisLike + 1
+        await PostsModule.findOneAndUpdate({ _id: id }, { DisLike: DisLike })
+
+        return res.status(200).json({ success: true, message: 'Dislike thanh cong' })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Server Error' })
+    }
+})
+
 //=========================================================
 //POST views
 router.post('/post-view/:id', middlewareCntroller.verifyToken, async (req, res) => {

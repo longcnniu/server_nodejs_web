@@ -28,7 +28,12 @@ const PostsSchema = new Schema({
     type: String,
     query: true
   },
-  numberVote: {
+  Like: {
+    type: Number,
+    query: true,
+    default: 0
+  },
+  DisLike: {
     type: Number,
     query: true,
     default: 0
