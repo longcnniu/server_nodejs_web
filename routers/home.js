@@ -1,18 +1,11 @@
 const express = require('express')
 const middlewareCntroller = require('../controllers/middlewareController')
-
-//API google Drive
-const {google} = require('googleapis');
-const fs = require('fs');
-const readline = require('readline');
-const CLIENT_ID = '1089463953949-qmh89r40odhn584fv0f1aokvp1oqdfe7.apps.googleusercontent.com'
-const CLIENT_SECRET = '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'
-const REDIRECT_URI = 'https://developers.google.com/oauthplayground'
-
-const REFRESH_TOKEN = '1//04Odp2Nye0_v_CgYIARAAGAQSNwF-L9IrX-AiAtw8_2o_vL4zk_VT_ldAx9SSDrRDOq19xf4RsL9fNAuIq4-rvk934emmLKJ8MEY'
+var path = require('path');
+const fs = require('fs')
 
 //Multre
-const multer  = require('multer')
+const multer = require('multer')
+// const upload = multer()
 
 var router = express.Router()
 
@@ -23,87 +16,66 @@ const VotesModule = require('../models/vote')
 const ViewsModule = require('../models/view')
 const nodemailer = require("nodemailer");
 const AccountModel = require('../models/account')
-const {body} = require("express-validator");
-const {file} = require("googleapis/build/src/apis/file");
 //=========================================================
-const oauth2Clint = new google.auth.OAuth2(
-    CLIENT_ID,
-    CLIENT_SECRET,
-    REDIRECT_URI
-)
 
-oauth2Clint.setCredentials({ refresh_token: REFRESH_TOKEN})
-
-const drive = google.drive({
-    version: 'v3',
-    auth: oauth2Clint
-})
-
-// const filePath = path.join(__dirname, 'girl.jpg')
 //Upload File
 const fileStorageEngine = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, "./imges")
     },
     filename: (req, file, cb) => {
-        cb(null, Date.now() +"--"+file.originalname)
+        cb(null, Date.now() + "--" + file.originalname)
     }
 })
 
-const uplaod = multer({ storage: fileStorageEngine })
+const upload = multer({ storage: fileStorageEngine })
 
-router.post('/test', uplaod.single('image'), async (req, res) => {
+// router.post('/upload-img', upload.single('image'), async (req, res) => {
+//     // console.log(req.file.filename);
+//     const NameImg = req.file.filename
+//     const { title, content, category } = req.body
+
+//     try {
+//         const savePost = await PostsModule({title, content, category, NameImg })
+//         await savePost.save()
+
+//         return res.status(200).json({message: 'Create Success'})
+//     } catch (error) {
+//         return res.status(502).json({ message: 'Error Server' })
+//     }
+// })
+
+router.get('/get-img', (req, res) => {
+    const nameImg = req.query.nameImg
+    res.sendFile(path.resolve(path.resolve(__dirname, '../imges/' + nameImg)));
+})
+
+router.delete('/del-img', async (req, res) => {
+    const nameImg = req.body.nameImg
+    let reqPath = path.join(__dirname, `../imges/${nameImg}`)
+
+    if(reqPath === null){
+        return res.status(400).json({message: 'Not found'})
+    }
 
     try {
-        const response = await drive.files.create({
-            requestBody: {
-                name: req.file.filename,
-                mimeType: 'image/jpg'
-            },
-            media: {
-                mimeType: 'image/jpg',
-                body: fs.createReadStream(`imges/${req.file.filename}`)
-            }
-        })
-
-        //Public
-        const fileId = response.data.id;
-        await drive.permissions.create({
-          fileId: fileId,
-          requestBody: {
-            role: 'reader',
-            type: 'anyone',
-          },
-        });
-    
-        /* 
-        webViewLink: View the file in browser
-        webContentLink: Direct download link 
-        */
-        const result = await drive.files.get({
-          fileId: fileId,
-          fields: 'webViewLink, webContentLink',
-        });
-        console.log(result.data);
-        
-    } catch (error) {
-        return res.status(502).json({message: 'server error: '+ error})
+        await fs.unlinkSync(reqPath)
+        //file removed
+        res.json({ message: 'ok' })
+    } catch (err) {
+        console.error(err)
     }
-})
-
-router.post('/doc', (req, res) => {
-    res.status(200).json({})
 })
 
 //=========================================================
-router.get('/', middlewareCntroller.verifyToken, (req, res, next) => {
-    return res.status(200).json({success: true, role: req.user.role, UserId: req.user.userId})
+router.get('/', middlewareCntroller.verifyToken, (req, res) => {
+    return res.status(200).json({ success: true, role: req.user.role, UserId: req.user.userId })
 })
 
 //=========================================================
 //get Post kiểm tra
 router.get('/post', middlewareCntroller.verifyToken, (req, res) => {
-    return res.status(200).json({success: true, role: req.user.role})
+    return res.status(200).json({ success: true, role: req.user.role })
 })
 
 
@@ -112,19 +84,19 @@ router.get('/posts', middlewareCntroller.verifyToken, async (req, res) => {
     const page_size = req.query.page_size
     const page = req.query.page
 
-    if (page && page > 0 && page_size != undefined) {
+    if (page && page > 0 && page_size != undefined) {       
         try {
             var skipPost = (parseInt(page) - 1) * parseInt(page_size)
 
             const dataPost = await PostsModule.find().skip(skipPost).limit(page_size)
 
             if (!dataPost) {
-                return res.status(400).json({success: false, message: 'khong co bia viet nao'})
+                return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
             }
 
-            return res.status(200).json({success: true, dataPost: dataPost})
+            return res.status(200).json({ success: true, dataPost: dataPost })
         } catch (error) {
-            return res.status(500).json({success: false, message: 'loi server ' + error})
+            return res.status(500).json({ success: false, message: 'loi server ' + error })
         }
     } else if (page && page > 0 && page_size == undefined) {
         try {
@@ -133,12 +105,12 @@ router.get('/posts', middlewareCntroller.verifyToken, async (req, res) => {
             const dataPost = await PostsModule.find().skip(skipPost).limit(5)
 
             if (!dataPost) {
-                return res.status(400).json({success: false, message: 'khong co bia viet nao'})
+                return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
             }
 
-            return res.status(200).json({success: true, dataPost: dataPost})
+            return res.status(200).json({ success: true, dataPost: dataPost })
         } catch (error) {
-            return res.status(500).json({success: false, message: 'loi server ' + error})
+            return res.status(500).json({ success: false, message: 'loi server ' + error })
         }
     } else {
         try {
@@ -148,83 +120,89 @@ router.get('/posts', middlewareCntroller.verifyToken, async (req, res) => {
             const dataPost = await PostsModule.find().skip(skipPost).limit(5)
 
             if (!dataPost) {
-                return res.status(400).json({success: false, message: 'khong co bia viet nao'})
+                return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
             }
 
-            return res.status(200).json({success: true, dataPost: dataPost})
+            return res.status(200).json({ success: true, dataPost: dataPost })
         } catch (error) {
-            return res.status(500).json({success: false, message: 'loi server ' + error})
+            return res.status(500).json({ success: false, message: 'loi server ' + error })
         }
     }
 })
-
 //get all post
 router.get('/all-posts', middlewareCntroller.verifyToken, async (req, res) => {
     try {
         const dataPost = await PostsModule.find()
 
         if (!dataPost) {
-            return res.status(400).json({success: false, message: 'khong co bia viet nao'})
+            return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
         }
 
-        return res.status(200).json({success: true, dataPost: dataPost})
+        return res.status(200).json({ success: true, dataPost: dataPost })
     } catch (error) {
-        return res.status(500).json({success: false, message: 'loi server'})
+        return res.status(500).json({ success: false, message: 'loi server' })
     }
 })
 
 //post bai
-router.post('/post', middlewareCntroller.verifyTokenAndStaffAuth, async (req, res) => {
+router.post('/post', upload.single('image'), middlewareCntroller.verifyTokenAndStaffAuth, async (req, res) => {
     const UserId = req.user.userId
     const name = req.user.name
     const email = req.user.email
-    const {title, content, category} = req.body
+    const { title, content, category } = req.body
+    const NameImg = req.file
+    TyFile = NameImg.mimetype.split('/')[0];
 
     if (!title || !content) {
-        return res.status(401).json({success: false, message: 'thieu tieu de va noi dung'})
+        return res.status(401).json({ success: false, message: 'thieu tieu de va noi dung' })
     }
 
     try {
-        const savePost = await PostsModule({UserId, name, title, content, category})
-        await savePost.save()
-
-        const data = await AccountModel.find({ role: ['admin', 'qa-manager'] })
-
-        for (let i = 0; i < data.length; i++) {
-            //send email
-            var user = process.env.EMAIL;
-            var pass = process.env.PASS;
-            var EmaiTo = data[i].email;
-
-            var transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: user,
-                    pass: pass
-                }
-            });
-
-            var mailOptions = {
-                from: user,
-                to: EmaiTo,
-                subject: 'Sending Email using Node.js',
-                html: `Thông báo có bài đăng mới từ Name: ${name} | Email: ${email}`
-            }
-
-            transporter.sendMail(mailOptions, function (error, info) {
-                if (error) {
-                    console.log(error);
-                } else {
-                    return res.status(200).json({ success: true, message: 'send Email successfully' })
-                }
-            });
+        if (NameImg === undefined) {
+            const savePost = await PostsModule({ UserId, name, title, content, category, NameImg: 'null', TyFile })
+            await savePost.save()
+        } else {
+            const savePost = await PostsModule({ UserId, name, title, content, category, NameImg: NameImg.filename, TyFile })
+            await savePost.save()
         }
 
-        return res.status(200).json({success: true, message: 'Created Post successfully'})
-    } catch (error) {
-        return res.status(500).json({success: true, message: 'loi server'})
-    }
 
+        // const data = await AccountModel.find({ role: ['admin', 'qa-manager'] })
+
+        // for (let i = 0; i < data.length; i++) {
+        //     //send email
+        //     var user = process.env.EMAIL;
+        //     var pass = process.env.PASS;
+        //     var EmaiTo = data[i].email;
+
+        //     var transporter = nodemailer.createTransport({
+        //         service: 'gmail',
+        //         auth: {
+        //             user: user,
+        //             pass: pass
+        //         }
+        //     });
+
+        //     var mailOptions = {
+        //         from: user,
+        //         to: EmaiTo,
+        //         subject: 'Sending Email using Node.js',
+        //         html: `Thông báo có bài đăng mới từ Name: ${name} | Email: ${email}`
+        //     }
+
+        //     transporter.sendMail(mailOptions, function (error, info) {
+        //         if (error) {
+        //             console.log(error);
+        //         } else {
+        //             return res.status(200).json({ success: true, message: 'send Email successfully' })
+        //         }
+        //     });
+        // }
+
+        return res.status(200).json({ success: true, message: 'Created Post successfully' })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'loi server' })
+    }
 })
 
 //put bai
@@ -232,32 +210,32 @@ router.put('/post/:id', middlewareCntroller.verifyToken, async (req, res) => {
     const id = req.params.id
     const UserId = req.user.userId
     const name = req.user.name
-    const {title, content, category} = req.body
+    const { title, content, category } = req.body
 
     if (!title || !content) {
-        return res.status(401).json({success: false, message: 'thieu tieu de va noi dung'})
+        return res.status(401).json({ success: false, message: 'thieu tieu de va noi dung' })
     }
 
     try {
         const findPost = await PostsModule.findById(id)
 
         if (!findPost) {
-            return res.status(400).json({success: false, message: 'Không tìm thấy bài viết'})
+            return res.status(400).json({ success: false, message: 'Không tìm thấy bài viết' })
         }
 
         if (findPost.UserId !== UserId) {
-            return res.status(400).json({success: false, message: 'Không có quyền Updata'})
+            return res.status(400).json({ success: false, message: 'Không có quyền Updata' })
         }
 
-        const updataPost = await PostsModule.findByIdAndUpdate({_id: id}, {UserId, name, title, content, category})
+        const updataPost = await PostsModule.findByIdAndUpdate({ _id: id }, { UserId, name, title, content, category })
 
         if (!updataPost) {
-            return res.status(400).json({success: false, message: 'Updata Post error'})
+            return res.status(400).json({ success: false, message: 'Updata Post error' })
         }
 
-        return res.status(200).json({success: true, message: 'Updata Post successfully'})
+        return res.status(200).json({ success: true, message: 'Updata Post successfully' })
     } catch (error) {
-        return res.status(500).json({success: true, message: 'loi server'})
+        return res.status(500).json({ success: true, message: 'loi server' })
     }
 })
 
@@ -272,26 +250,26 @@ router.delete('/post/:id', middlewareCntroller.verifyToken, async (req, res) => 
         const data = await PostsModule.findById(id)
 
         if (!data) {
-            return res.status(400).json({success: false, message: 'Bai viet khong ton tai'})
+            return res.status(400).json({ success: false, message: 'Bai viet khong ton tai' })
         }
 
         if (idUser === data.UserId || role === 'admin' || role === 'qa-manager') {
             await PostsModule.findByIdAndDelete(id)
 
             //Del Vote cua bai Post
-            await VotesModule.deleteMany({PostId: id})
+            await VotesModule.deleteMany({ PostId: id })
             //Del View cua bai Post
-            await ViewsModule.deleteMany({PostId: id})
+            await ViewsModule.deleteMany({ PostId: id })
             //Del Comment cua bai Post
-            await CommentModule.deleteMany({idPost: id});
+            await CommentModule.deleteMany({ idPost: id });
             //all good
-            return res.status(200).json({success: true, message: 'xoa thanh cong'})
+            return res.status(200).json({ success: true, message: 'xoa thanh cong' })
         }
 
-        return res.status(400).json({success: false, message: 'Bạn không đủ quyền để xóa'})
+        return res.status(400).json({ success: false, message: 'Bạn không đủ quyền để xóa' })
 
     } catch (error) {
-        return res.status(500).json({success: false, message: 'loi server'})
+        return res.status(500).json({ success: false, message: 'loi server' })
     }
 })
 
@@ -301,12 +279,12 @@ router.get('/post/:id', middlewareCntroller.verifyToken, async (req, res) => {
     try {
         const dataPost = await PostsModule.findById(id)
         if (!dataPost) {
-            return res.status(400).json({success: false, message: 'khong co bia viet nao'})
+            return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
         }
 
-        return res.status(200).json({success: true, dataPost: dataPost})
+        return res.status(200).json({ success: true, dataPost: dataPost })
     } catch (error) {
-        return res.status(500).json({success: false, message: 'loi server'})
+        return res.status(500).json({ success: false, message: 'loi server' })
     }
 })
 
@@ -320,21 +298,21 @@ router.get('/post-comment/:id', middlewareCntroller.verifyToken, async (req, res
 
     try {
         if (role == 'admin' || role == 'qa-manager') {
-            const commentData = await CommentModule.find({idPost: id})
-            return res.status(200).json({success: true, message: commentData})
+            const commentData = await CommentModule.find({ idPost: id })
+            return res.status(200).json({ success: true, message: commentData })
         } else if (role == 'staff') {
             const dataPost = await PostsModule.findById(id)
             //check có phải chủ bài không để show full comment
             if (dataPost.UserId == idUser) {
-                const commentData = await CommentModule.find({idPost: id})
-                return res.status(200).json({success: true, message: commentData})
+                const commentData = await CommentModule.find({ idPost: id })
+                return res.status(200).json({ success: true, message: commentData })
             } else {
-                const commentData = await CommentModule.find({$and: [{idPost: id}, {idUser: idUser}]})
-                return res.status(200).json({success: true, message: commentData})
+                const commentData = await CommentModule.find({ $and: [{ idPost: id }, { idUser: idUser }] })
+                return res.status(200).json({ success: true, message: commentData })
             }
         }
     } catch (error) {
-        return res.status(500).json({success: false, message: 'loi server'})
+        return res.status(500).json({ success: false, message: 'loi server' })
     }
 })
 
@@ -348,11 +326,11 @@ router.post('/post-comment/:id', middlewareCntroller.verifyToken, async (req, re
     const email = req.user.email
 
     if (!comment) {
-        return res.status(401).json({message: 'thieu noi dung binh luan'})
+        return res.status(401).json({ message: 'thieu noi dung binh luan' })
     }
 
     try {
-        const commentData = await CommentModule({comment, idUser, idPost: id, name})
+        const commentData = await CommentModule({ comment, idUser, idPost: id, name })
         await commentData.save()
 
         //Tra Chu bai Post
@@ -387,9 +365,9 @@ router.post('/post-comment/:id', middlewareCntroller.verifyToken, async (req, re
             }
         });
 
-        return res.status(200).json({success: true, message: 'comment thanh cong'})
+        return res.status(200).json({ success: true, message: 'comment thanh cong' })
     } catch (error) {
-        return res.status(500).json({success: false, message: 'loi server'})
+        return res.status(500).json({ success: false, message: 'loi server' })
     }
 })
 
@@ -399,20 +377,20 @@ router.delete('/del-comment/:id', middlewareCntroller.verifyToken, async (req, r
     const idUser = req.user.userId
 
     try {
-        const findComment = await CommentModule.findOne({_id: id})
+        const findComment = await CommentModule.findOne({ _id: id })
 
         if (!findComment) {
-            return res.status(401).json({success: false, message: 'comment khong ton tai'})
+            return res.status(401).json({ success: false, message: 'comment khong ton tai' })
         }
 
         if (idUser !== findComment.idUser) {
-            return res.status(401).json({success: false, message: 'comment nay khong so huu'})
+            return res.status(401).json({ success: false, message: 'comment nay khong so huu' })
         }
 
         //Del comment
         await CommentModule.findByIdAndDelete(id)
 
-        return res.status(200).json({success: true, message: 'del comment success'})
+        return res.status(200).json({ success: true, message: 'del comment success' })
     } catch (error) {
 
     }
@@ -426,11 +404,11 @@ router.get('/post-vote/:id', middlewareCntroller.verifyToken, async (req, res) =
     const idUser = req.user.userId
 
     try {
-        const VoteData = await VotesModule.find({UserId: idUser, PostId: id})
+        const VoteData = await VotesModule.find({ UserId: idUser, PostId: id })
 
         return res.json(VoteData)
     } catch (error) {
-        return res.status(500).json({success: false, message: 'loi server'})
+        return res.status(500).json({ success: false, message: 'loi server' })
     }
 })
 
@@ -442,28 +420,28 @@ router.post('/post-vote/:id', middlewareCntroller.verifyToken, async (req, res) 
     const name = req.user.name
 
     try {
-        const CheckData = await VotesModule.find({UserId: idUser, PostId: id})
+        const CheckData = await VotesModule.find({ UserId: idUser, PostId: id })
 
         if (CheckData.length != 0) {
-            await VotesModule.findOneAndDelete({UserId: idUser, PostId: id})
+            await VotesModule.findOneAndDelete({ UserId: idUser, PostId: id })
             //Trừ -1 vote
-            const dataPost = await PostsModule.find({_id: id})
+            const dataPost = await PostsModule.find({ _id: id })
             const numbervote = dataPost[0].numberVote - 1
-            await PostsModule.findOneAndUpdate({_id: id}, {numberVote: numbervote})
+            await PostsModule.findOneAndUpdate({ _id: id }, { numberVote: numbervote })
 
-            return res.status(200).json({success: true, message: 'Bạn đã hủy Vote'})
+            return res.status(200).json({ success: true, message: 'Bạn đã hủy Vote' })
         }
 
-        const dataVote = await VotesModule({UserId: idUser, PostId: id, name: name})
+        const dataVote = await VotesModule({ UserId: idUser, PostId: id, name: name })
         await dataVote.save()
         //cộng 1 vote
-        const dataPost = await PostsModule.find({_id: id})
+        const dataPost = await PostsModule.find({ _id: id })
         const numbervote = dataPost[0].numberVote + 1
-        await PostsModule.findOneAndUpdate({_id: id}, {numberVote: numbervote})
+        await PostsModule.findOneAndUpdate({ _id: id }, { numberVote: numbervote })
 
-        return res.status(200).json({success: true, message: 'vote thanh cong'})
+        return res.status(200).json({ success: true, message: 'vote thanh cong' })
     } catch (error) {
-        return res.status(500).json({success: false, message: 'loi server'})
+        return res.status(500).json({ success: false, message: 'loi server' })
     }
 })
 //=========================================================
@@ -474,22 +452,22 @@ router.post('/post-view/:id', middlewareCntroller.verifyToken, async (req, res) 
     const name = req.user.name
 
     try {
-        const CheckData = await ViewsModule.find({UserId: idUser, PostId: id})
+        const CheckData = await ViewsModule.find({ UserId: idUser, PostId: id })
 
         if (CheckData.length != 0) {
-            return res.status(200).json({success: true, message: 'Bạn đã view'})
+            return res.status(200).json({ success: true, message: 'Bạn đã view' })
         }
 
-        const dataVote = await ViewsModule({UserId: idUser, PostId: id, name: name})
+        const dataVote = await ViewsModule({ UserId: idUser, PostId: id, name: name })
         await dataVote.save()
         //cộng 1 view
-        const dataPost = await PostsModule.find({_id: id})
+        const dataPost = await PostsModule.find({ _id: id })
         const numbervote = dataPost[0].numberView + 1
-        await PostsModule.findOneAndUpdate({_id: id}, {numberView: numbervote})
+        await PostsModule.findOneAndUpdate({ _id: id }, { numberView: numbervote })
 
-        return res.status(200).json({success: true, message: 'view thanh cong'})
+        return res.status(200).json({ success: true, message: 'view thanh cong' })
     } catch (error) {
-        return res.status(500).json({success: false, message: 'loi server'})
+        return res.status(500).json({ success: false, message: 'loi server' })
     }
 })
 

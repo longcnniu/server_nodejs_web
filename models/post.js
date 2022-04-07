@@ -47,7 +47,15 @@ const PostsSchema = new Schema({
     type: Boolean,
     query: true,
     default: false
-  }
+  },
+  NameImg: {
+    type: String,
+    query: true,
+  },
+  TyFile: {
+    type: String,
+    query: true,
+  },
 });
 
 const PostsModule = mongoose.model('Posts', PostsSchema);
