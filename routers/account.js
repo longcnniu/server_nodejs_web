@@ -839,12 +839,22 @@ router.put('/view-user/:id', middlewareCntroller.verifyTokenAndQAAuth, async (re
   const firstName = req.body.firstName
   const lastName = req.body.lastName
   const Department = req.body.Department
+  const password = req.body.password
 
   try {
-    const data = await AccountModel.findByIdAndUpdate({ _id: `${id}` }, { email, role: role, Department, firstName, lastName })
+    if (password !== undefined) {
+      const hashPassword = await argon2.hash(password)
+      const data = await AccountModel.findByIdAndUpdate({ _id: `${id}` }, { email, role: role, Department, firstName, lastName, password: hashPassword })
 
-    if (!data) {
-      return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
+      if (!data) {
+        return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
+      }
+    }else{
+      const data = await AccountModel.findByIdAndUpdate({ _id: `${id}` }, { email, role: role, Department, firstName, lastName })
+
+      if (!data) {
+        return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
+      }
     }
 
     return res.status(200).json({ success: true, message: 'cap nhat thanh cong' })

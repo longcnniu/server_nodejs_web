@@ -84,12 +84,14 @@ router.get('/post', middlewareCntroller.verifyToken, (req, res) => {
 router.get('/posts', middlewareCntroller.verifyToken, async (req, res) => {
     const page_size = req.query.page_size
     const page = req.query.page
+    const sort = req.query.sort
+    const sortty = req.query.sortty
 
     if (page && page > 0 && page_size != undefined) {
         try {
             var skipPost = (parseInt(page) - 1) * parseInt(page_size)
 
-            const dataPost = await PostsModule.find().skip(skipPost).limit(page_size)
+            const dataPost = await PostsModule.find().skip(skipPost).limit(page_size).sort({[sort]: sortty})
 
             if (!dataPost) {
                 return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
@@ -103,7 +105,7 @@ router.get('/posts', middlewareCntroller.verifyToken, async (req, res) => {
         try {
             var skipPost = (parseInt(page) - 1) * parseInt(5)
 
-            const dataPost = await PostsModule.find().skip(skipPost).limit(5)
+            const dataPost = await PostsModule.find().skip(skipPost).limit(5).sort({[sort]: sortty})
 
             if (!dataPost) {
                 return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
@@ -118,7 +120,7 @@ router.get('/posts', middlewareCntroller.verifyToken, async (req, res) => {
             const page = 1
             var skipPost = (page - 1) * 5
 
-            const dataPost = await PostsModule.find().skip(skipPost).limit(5)
+            const dataPost = await PostsModule.find().skip(skipPost).limit(5).sort({[sort]: sortty})
 
             if (!dataPost) {
                 return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
@@ -152,7 +154,8 @@ router.post('/post', upload.single('image'), middlewareCntroller.verifyTokenAndS
     const email = req.user.email
     const { title, content, category } = req.body
     const NameImg = req.file
-    TyFile = NameImg.mimetype.split('/')[0];
+    
+    
 
     if (!title || !content) {
         return res.status(401).json({ success: false, message: 'thieu tieu de va noi dung' })
@@ -160,9 +163,10 @@ router.post('/post', upload.single('image'), middlewareCntroller.verifyTokenAndS
 
     try {
         if (NameImg === undefined) {
-            const savePost = await PostsModule({ UserId, name, title, content, category, NameImg: 'null', TyFile })
+            const savePost = await PostsModule({ UserId, name, title, content, category, NameImg: 'null' })
             await savePost.save()
         } else {
+            const TyFile = NameImg.mimetype.split('/')[0];
             const savePost = await PostsModule({ UserId, name, title, content, category, NameImg: NameImg.filename, TyFile })
             await savePost.save()
         }
@@ -202,7 +206,7 @@ router.post('/post', upload.single('image'), middlewareCntroller.verifyTokenAndS
 
         return res.status(200).json({ success: true, message: 'Created Post successfully' })
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' })
+        return res.status(500).json({ success: false, message: 'Server Error' })
     }
 })
 
