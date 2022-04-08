@@ -61,6 +61,10 @@ const PostsSchema = new Schema({
     type: String,
     query: true,
   },
+  Department: {
+    type: String,
+    query: true
+  }
 });
 
 const PostsModule = mongoose.model('Posts', PostsSchema);

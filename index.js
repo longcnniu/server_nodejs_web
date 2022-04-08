@@ -13,6 +13,7 @@ const loginRouter = require('./routers/login')
 const adminRouter = require('./routers/admin')
 const QaManagerRouter = require('./routers/qaManager')
 const CategorysRouter = require('./routers/category')
+const statisticalRouter = require('./routers/statistical')
 
 //models
 const Time = require('./function/timeUp')
@@ -67,6 +68,7 @@ app.use('/',loginRouter)
 app.use('/',adminRouter)
 app.use('/',QaManagerRouter)
 app.use('/',CategorysRouter)
+app.use('/',statisticalRouter)
 
 Time
 //them port chon len heroko

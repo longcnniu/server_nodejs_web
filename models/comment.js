@@ -23,7 +23,11 @@ const CommentSchema = new Schema({
     name: {
         type:String,
         query: true
-    }
+    },
+    Department: {
+        type: String,
+        query: true
+      }
 });
 
 const CommentModule = mongoose.model('Comment', CommentSchema);

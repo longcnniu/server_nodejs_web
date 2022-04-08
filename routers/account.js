@@ -80,7 +80,7 @@ router.post('/login', async (req, res) => {
       }
 
       //All good
-      const accessToken = await jwt.sign({ userId: user._id, email: user.email, role: user.role, name: `${user.firstName} ${user.lastName}` }, process.env.ACCESSTOKEN_MK, { expiresIn: "1d" })
+      const accessToken = await jwt.sign({ userId: user._id, email: user.email, role: user.role, name: `${user.firstName} ${user.lastName}`,department: user.Department }, process.env.ACCESSTOKEN_MK, { expiresIn: "1d" })
       // const refreshToken = await jwt.sign({ userId: user._id, email: user.email, role: user.role, name: `${user.firstName} ${user.lastName}` }, process.env.REFRESTOKEN_MK, { expiresIn: "15m" })
       // res.cookie("refreshToken", refreshToken, {
       //   httpOnly: true,

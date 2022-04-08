@@ -151,6 +151,7 @@ router.get('/all-posts', middlewareCntroller.verifyToken, async (req, res) => {
 router.post('/post', upload.single('image'), middlewareCntroller.verifyTokenAndStaffAuth, async (req, res) => {
     const UserId = req.user.userId
     const name = req.user.name
+    const Department = req.user.department
     const email = req.user.email
     const { title, content, category } = req.body
     const NameImg = req.file
@@ -163,14 +164,13 @@ router.post('/post', upload.single('image'), middlewareCntroller.verifyTokenAndS
 
     try {
         if (NameImg === undefined) {
-            const savePost = await PostsModule({ UserId, name, title, content, category, NameImg: 'null' })
+            const savePost = await PostsModule({ UserId, name, title, content, category, NameImg: 'null',Department })
             await savePost.save()
         } else {
             const TyFile = NameImg.mimetype.split('/')[0];
-            const savePost = await PostsModule({ UserId, name, title, content, category, NameImg: NameImg.filename, TyFile })
+            const savePost = await PostsModule({ UserId, name, title, content, category, NameImg: NameImg.filename, TyFile, Department})
             await savePost.save()
         }
-
 
         // const data = await AccountModel.find({ role: ['admin', 'qa-manager'] })
 
@@ -215,6 +215,7 @@ router.put('/post/:id', middlewareCntroller.verifyToken, async (req, res) => {
     const id = req.params.id
     const UserId = req.user.userId
     const name = req.user.name
+    const Department = req.user.department
     const { title, content, category } = req.body
 
     if (!title || !content) {
@@ -232,7 +233,7 @@ router.put('/post/:id', middlewareCntroller.verifyToken, async (req, res) => {
             return res.status(400).json({ success: false, message: 'Không có quyền Updata' })
         }
 
-        const updataPost = await PostsModule.findByIdAndUpdate({ _id: id }, { UserId, name, title, content, category })
+        const updataPost = await PostsModule.findByIdAndUpdate({ _id: id }, { UserId, name, title, content, category, Department})
 
         if (!updataPost) {
             return res.status(400).json({ success: false, message: 'Updata Post error' })
@@ -332,6 +333,7 @@ router.post('/post-comment/:id', middlewareCntroller.verifyToken, async (req, re
     const id = req.params.id
     const idUser = req.user.userId
     const comment = req.body.comment
+    const Department = req.user.department
     const name = req.user.name
     const email = req.user.email
 
@@ -340,7 +342,7 @@ router.post('/post-comment/:id', middlewareCntroller.verifyToken, async (req, re
     }
 
     try {
-        const commentData = await CommentModule({ comment, idUser, idPost: id, name })
+        const commentData = await CommentModule({ comment, idUser, idPost: id, name, Department })
         await commentData.save()
 
         //Tra Chu bai Post
