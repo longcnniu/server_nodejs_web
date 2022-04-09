@@ -296,6 +296,20 @@ router.get('/post/:id', middlewareCntroller.verifyToken, async (req, res) => {
     }
 })
 
+//Get Post theo category
+router.get('/post-category', async (req, res) => {
+    const category = req.query.category
+
+    try {
+        const data = await PostsModule.find({category: category},{"_id": 0, 'UserId': 0,"lockPost": 0,
+        "endTime1": 0,"TyFile": 0, '__v':0})
+
+        return res.status(200).json({ success: true, data: data})
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Server Error' })
+    }
+})
+
 ////=========================================================
 //Get comment post
 router.get('/post-comment/:id', middlewareCntroller.verifyToken, async (req, res) => {
