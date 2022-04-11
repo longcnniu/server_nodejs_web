@@ -91,7 +91,7 @@ router.get('/posts', middlewareCntroller.verifyToken, async (req, res) => {
         try {
             var skipPost = (parseInt(page) - 1) * parseInt(page_size)
 
-            const dataPost = await PostsModule.find().skip(skipPost).limit(page_size).sort({[sort]: sortty})
+            const dataPost = await PostsModule.find().skip(skipPost).limit(page_size).sort({ [sort]: sortty })
 
             if (!dataPost) {
                 return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
@@ -105,7 +105,7 @@ router.get('/posts', middlewareCntroller.verifyToken, async (req, res) => {
         try {
             var skipPost = (parseInt(page) - 1) * parseInt(5)
 
-            const dataPost = await PostsModule.find().skip(skipPost).limit(5).sort({[sort]: sortty})
+            const dataPost = await PostsModule.find().skip(skipPost).limit(5).sort({ [sort]: sortty })
 
             if (!dataPost) {
                 return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
@@ -120,7 +120,7 @@ router.get('/posts', middlewareCntroller.verifyToken, async (req, res) => {
             const page = 1
             var skipPost = (page - 1) * 5
 
-            const dataPost = await PostsModule.find().skip(skipPost).limit(5).sort({[sort]: sortty})
+            const dataPost = await PostsModule.find().skip(skipPost).limit(5).sort({ [sort]: sortty })
 
             if (!dataPost) {
                 return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
@@ -155,8 +155,8 @@ router.post('/post', upload.single('image'), middlewareCntroller.verifyTokenAndS
     const email = req.user.email
     const { title, content, category } = req.body
     const NameImg = req.file
-    
-    
+
+
 
     if (!title || !content) {
         return res.status(401).json({ success: false, message: 'thieu tieu de va noi dung' })
@@ -164,11 +164,11 @@ router.post('/post', upload.single('image'), middlewareCntroller.verifyTokenAndS
 
     try {
         if (NameImg === undefined) {
-            const savePost = await PostsModule({ UserId, name, title, content, category, NameImg: 'null',Department })
+            const savePost = await PostsModule({ UserId, name, title, content, category, NameImg: 'null', Department })
             await savePost.save()
         } else {
             const TyFile = NameImg.mimetype.split('/')[0];
-            const savePost = await PostsModule({ UserId, name, title, content, category, NameImg: NameImg.filename, TyFile, Department})
+            const savePost = await PostsModule({ UserId, name, title, content, category, NameImg: NameImg.filename, TyFile, Department })
             await savePost.save()
         }
 
@@ -233,7 +233,7 @@ router.put('/post/:id', middlewareCntroller.verifyToken, async (req, res) => {
             return res.status(400).json({ success: false, message: 'Không có quyền Updata' })
         }
 
-        const updataPost = await PostsModule.findByIdAndUpdate({ _id: id }, { UserId, name, title, content, category, Department})
+        const updataPost = await PostsModule.findByIdAndUpdate({ _id: id }, { UserId, name, title, content, category, Department })
 
         if (!updataPost) {
             return res.status(400).json({ success: false, message: 'Updata Post error' })
@@ -265,7 +265,7 @@ router.delete('/post/:id', middlewareCntroller.verifyToken, async (req, res) => 
             //Del Like cua bai Post
             await VotesModule.deleteMany({ PostId: id })
             //Del Dislike cua Post
-            await DisLikeModule.deleteMany({PostId: id})
+            await DisLikeModule.deleteMany({ PostId: id })
             //Del View cua bai Post
             await ViewsModule.deleteMany({ PostId: id })
             //Del Comment cua bai Post
@@ -301,10 +301,12 @@ router.get('/post-category', async (req, res) => {
     const category = req.query.category
 
     try {
-        const data = await PostsModule.find({category: category},{"_id": 0, 'UserId': 0,"lockPost": 0,
-        "endTime1": 0,"TyFile": 0, '__v':0})
+        const data = await PostsModule.find({ category: category }, {
+            "_id": 0, 'UserId': 0, "lockPost": 0,
+            "endTime1": 0, "TyFile": 0, '__v': 0
+        })
 
-        return res.status(200).json({ success: true, data: data})
+        return res.status(200).json({ success: true, data: data })
     } catch (error) {
         return res.status(500).json({ success: false, message: 'Server Error' })
     }
@@ -335,6 +337,20 @@ router.get('/post-comment/:id', middlewareCntroller.verifyToken, async (req, res
         // }
 
         const commentData = await CommentModule.find({ idPost: id })
+        return res.status(200).json({ success: true, message: commentData })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'loi server' })
+    }
+})
+
+router.get('/post-comment-my/:id', middlewareCntroller.verifyToken, async (req, res) => {
+
+    const id = req.params.id
+    const role = req.user.role
+    const idUser = req.user.userId
+
+    try {
+        const commentData = await CommentModule.find({ $and: [{ idPost: id }, { idUser: idUser }] })
         return res.status(200).json({ success: true, message: commentData })
     } catch (error) {
         return res.status(500).json({ success: false, message: 'loi server' })
@@ -397,10 +413,33 @@ router.post('/post-comment/:id', middlewareCntroller.verifyToken, async (req, re
     }
 })
 
+//Get one Comment
+
+
+//Put Comment
+router.put('/updata-comment/:id', middlewareCntroller.verifyToken, async (req, res) => {
+    const id = req.params.id
+    const comment = req.body.comment
+
+    try {
+        const findComment = await CommentModule.findByIdAndUpdate({ _id: id }, { comment: comment })
+
+        if (!findComment) {
+            return res.status(402).json({ success: false, message: 'Comment khong ton tai' })
+        }
+
+        return res.status(200).json({ success: true, message: 'UpData Success' })
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Server Error' })
+    }
+})
+
 //Del Comment
 router.delete('/del-comment/:id', middlewareCntroller.verifyToken, async (req, res) => {
     const id = req.params.id
     const idUser = req.user.userId
+    const role = req.user.role
 
     try {
         const findComment = await CommentModule.findOne({ _id: id })
@@ -409,16 +448,16 @@ router.delete('/del-comment/:id', middlewareCntroller.verifyToken, async (req, r
             return res.status(401).json({ success: false, message: 'comment khong ton tai' })
         }
 
-        if (idUser !== findComment.idUser) {
-            return res.status(401).json({ success: false, message: 'comment nay khong so huu' })
-        }
+        // if (idUser !== findComment.idUser) {
+        //     return res.status(401).json({ success: false, message: 'comment nay khong so huu' })
+        // }
 
         //Del comment
         await CommentModule.findByIdAndDelete(id)
 
         return res.status(200).json({ success: true, message: 'del comment success' })
     } catch (error) {
-
+        return res.status(500).json({ success: false, message: 'Server Error' })
     }
 })
 
@@ -458,8 +497,8 @@ router.post('/post-Like/:id', middlewareCntroller.verifyToken, async (req, res) 
 
             return res.status(200).json({ success: true, message: 'Bạn đã hủy Like' })
         }
-        
-        if(CheckDataDisLike.length != 0){
+
+        if (CheckDataDisLike.length != 0) {
             //Huy DisLike để chuyển Sang Like
             await DisLikeModule.findOneAndDelete({ UserId: idUser, PostId: id })
             //Trừ -1 Dislike
@@ -492,7 +531,7 @@ router.post('/post-DisLike/:id', middlewareCntroller.verifyToken, async (req, re
         const CheckDataDisLike = await DisLikeModule.find({ UserId: idUser, PostId: id })
         const CheckDataLike = await VotesModule.find({ UserId: idUser, PostId: id })
 
-        if(CheckDataDisLike.length != 0){
+        if (CheckDataDisLike.length != 0) {
             await DisLikeModule.findOneAndDelete({ UserId: idUser, PostId: id })
             //Trừ -1 Dislike
             const dataPost = await PostsModule.find({ _id: id })
