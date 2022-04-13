@@ -44,6 +44,8 @@ app.use(bodyParser.json())
 
 
 const PORT = 5000
+const hostname = '115.73.2.62';
+const port = 80;
 
 //================================================================
 //chong DOS DDOS

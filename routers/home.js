@@ -143,7 +143,7 @@ router.get('/all-posts', middlewareCntroller.verifyToken, async (req, res) => {
 
         return res.status(200).json({ success: true, dataPost: dataPost })
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' })
+        return res.status(500).json({ success: false, message: 'Server Error' })
     }
 })
 
@@ -211,37 +211,30 @@ router.post('/post', upload.single('image'), middlewareCntroller.verifyTokenAndS
 })
 
 //put bai
-router.put('/post/:id', middlewareCntroller.verifyToken, async (req, res) => {
+router.put('/post/:id', upload.single('image'),middlewareCntroller.verifyToken, async (req, res) => {
     const id = req.params.id
     const UserId = req.user.userId
     const name = req.user.name
     const Department = req.user.department
+    const email = req.user.email
     const { title, content, category } = req.body
+    const NameImg = req.file
 
     if (!title || !content) {
         return res.status(401).json({ success: false, message: 'thieu tieu de va noi dung' })
     }
 
     try {
-        const findPost = await PostsModule.findById(id)
-
-        if (!findPost) {
-            return res.status(400).json({ success: false, message: 'Không tìm thấy bài viết' })
-        }
-
-        if (findPost.UserId !== UserId) {
-            return res.status(400).json({ success: false, message: 'Không có quyền Updata' })
-        }
-
-        const updataPost = await PostsModule.findByIdAndUpdate({ _id: id }, { UserId, name, title, content, category, Department })
-
-        if (!updataPost) {
-            return res.status(400).json({ success: false, message: 'Updata Post error' })
+        if (NameImg === undefined) {
+            await PostsModule.findOneAndUpdate({_id:id},{UserId, name, title, content, category, NameImg: 'null', Department})
+        } else {
+            const TyFile = NameImg.mimetype.split('/')[0];
+            await PostsModule.findOneAndUpdate({_id:id},{UserId, name, title, content, category, NameImg: NameImg.filename, TyFile, Department})
         }
 
         return res.status(200).json({ success: true, message: 'Updata Post successfully' })
     } catch (error) {
-        return res.status(500).json({ success: true, message: 'loi server' })
+        return res.status(500).json({ success: true, message: 'Server Error' })
     }
 })
 
@@ -292,7 +285,7 @@ router.get('/post/:id', middlewareCntroller.verifyToken, async (req, res) => {
 
         return res.status(200).json({ success: true, dataPost: dataPost })
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' })
+        return res.status(500).json({ success: false, message: 'Server Error' })
     }
 })
 
