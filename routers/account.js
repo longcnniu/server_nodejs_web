@@ -52,7 +52,7 @@ router.post('/registration', async (req, res) => {
     // const refreshToken = await jwt.sign({ userId: newUser._id, role: newUser.role, email: newUser.email}, process.env.REFRESTOKEN_MK, { expiresIn: "15m" })
     return res.status(200).json({ success: true, message: 'Created successfully' })
   } catch (error) {
-    return res.status(500).json({ success: false, message: 'loi server' })
+    return res.status(500).json({ success: false, message: 'Server Error' })
   }
 })
 //===================================================================================================
@@ -63,7 +63,7 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body
 
     if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Missing email and/or passwoed' })
+      return res.status(400).json({ success: false, message: 'Missing email and/or password' })
     }
 
     try {
@@ -90,7 +90,7 @@ router.post('/login', async (req, res) => {
       // })
       return res.status(200).json({ success: true, message: 'User logged in successfully', accessToken: accessToken})
     } catch (error) {
-      return res.status(500).json({ success: false, message: 'loi server' })
+      return res.status(500).json({ success: false, message: 'Server Error' })
     }
   })
 //===================================================================================================
@@ -120,7 +120,7 @@ router.post('/forgot-password', async (req, res, next) => {
       let currentTime = new Date().getTime()
       let diff = dataOTP.expiresAt - currentTime
       if (diff > 0) {
-        return res.json({ message: 'Sau 5p moi co the nhan email' })
+        return res.json({ message: 'After 5 minutes, I can see the email' })
       }
     }
 
@@ -710,7 +710,7 @@ router.post('/forgot-password', async (req, res, next) => {
       }
     });
   } catch (error) {
-    return res.status(500).json({ success: false, message: 'loi server' + error })
+    return res.status(500).json({ success: false, message: 'Server Error' + error })
   }
 })
 
@@ -731,22 +731,22 @@ router.post('/send-otp', async (req, res, next) => {
     //check OTP
     if (diff < 0) {
       await OTPModel.findOneAndDelete({ email })
-      return res.status(400).json({ message: 'OTP Het hang', success: false })
+      return res.status(400).json({ message: 'OTP Expired', success: false })
     }
     if (otp != dataOTP.OTP) {
       console.log(dataOTP.OTP);
-      return res.status(400).json({ message: 'Ma OTP Khong hop le', success: false })
+      return res.status(400).json({ message: 'Invalid OTP code', success: false })
     }
 
     //All good
     const hashPassword = await argon2.hash(password)
     await AccountModel.findOneAndUpdate({ email }, { password: hashPassword })
     await OTPModel.findOneAndDelete({ email })
-    return res.status(200).json({ message: 'cap nha thanh cong', success: true })
+    return res.status(200).json({ message: 'Update successful', success: true })
     //return res.redirect('/login')
 
   } catch (error) {
-    return res.status(500).json({ success: false, message: 'loi server' + error })
+    return res.status(500).json({ success: false, message: 'Server Error' + error })
   }
 })
 //===================================================================================================
@@ -762,13 +762,13 @@ router.post('/del-account', middlewareCntroller.verifyTokenAndAdminAuth, async (
     const user = await AccountModel.findOneAndDelete({ email })
 
     if (!user) {
-      return res.status(400).json({ message: 'Email khong ton tai', success: false })
+      return res.status(400).json({ message: 'Email does not exist', success: false })
     }
 
     //All good
-    res.status(200).json({ message: 'Del Thanh cong', success: true })
+    res.status(200).json({ message: 'Delete successfully', success: true })
   } catch (error) {
-    return res.status(500).json({ success: false, message: 'loi server' + error })
+    return res.status(500).json({ success: false, message: 'Server Error' + error })
   }
 })
 
@@ -780,13 +780,13 @@ router.get('/all-user', middlewareCntroller.verifyTokenAndAdminAuth, async (req,
     const user = await AccountModel.find({ role: ['staff', 'qa-manager'] })
 
     if (user == '') {
-      return res.status(200).json({ message: 'Chua co tai khoan', success: false })
+      return res.status(200).json({ message: 'No accounts exist', success: false })
     }
 
     res.status(200).json({ dataUsers: user, success: true })
 
   } catch (error) {
-    return res.status(500).json({ success: false, message: 'loi server' + error })
+    return res.status(500).json({ success: false, message: 'Server Error' + error })
   }
 })
 
@@ -798,13 +798,13 @@ router.get('/all-user-qa', middlewareCntroller.verifyTokenAndQAAuth, async (req,
     const user = await AccountModel.find({ role: "staff" })
 
     if (user == '') {
-      return res.status(200).json({ message: 'Chua co tai khoan', success: false })
+      return res.status(200).json({ message: 'No accounts exist', success: false })
     }
 
     res.status(200).json({ dataUsers: user, success: true })
 
   } catch (error) {
-    return res.status(500).json({ success: false, message: 'loi server' + error })
+    return res.status(500).json({ success: false, message: 'Server Error' + error })
   }
 })
 
@@ -821,12 +821,12 @@ router.get('/view-user/:id', middlewareCntroller.verifyTokenAndQAAuth, async (re
     const data = await AccountModel.findById({ _id: id })
 
     if (!data) {
-      return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
+      return res.status(401).json({ success: false, message: 'Account does not exist' })
     }
 
     return res.status(200).json({ success: true, data, roleAuth: roleAuth })
   } catch (error) {
-    res.json(error)
+    return res.status(500).json({ success: false, message: 'Server Error' + error })
   }
 
 })
@@ -847,17 +847,17 @@ router.put('/view-user/:id', middlewareCntroller.verifyTokenAndQAAuth, async (re
       const data = await AccountModel.findByIdAndUpdate({ _id: `${id}` }, { email, role: role, Department, firstName, lastName, password: hashPassword })
 
       if (!data) {
-        return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
+        return res.status(401).json({ success: false, message: 'Account does not exist' })
       }
     }else{
       const data = await AccountModel.findByIdAndUpdate({ _id: `${id}` }, { email, role: role, Department, firstName, lastName })
 
       if (!data) {
-        return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
+        return res.status(401).json({ success: false, message: 'Account does not exist' })
       }
     }
 
-    return res.status(200).json({ success: true, message: 'cap nhat thanh cong' })
+    return res.status(200).json({ success: true, message: 'Update successful' })
   } catch (error) {
     res.json(error)
   }
@@ -870,10 +870,10 @@ router.delete('/view-user/:id', middlewareCntroller.verifyTokenAndQAAuth, async 
     const data = await AccountModel.findByIdAndDelete({ _id: `${id}` })
 
     if (!data) {
-      return res.status(401).json({ success: false, message: 'tai khoan khong ton tai' })
+      return res.status(401).json({ success: false, message: 'Account does not exist' })
     }
 
-    return res.status(200).json({ success: true, message: 'xoa thanh cong' })
+    return res.status(200).json({ success: true, message: 'Delete Success' })
   } catch (error) {
     res.json(error)
   }

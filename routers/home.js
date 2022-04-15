@@ -94,12 +94,12 @@ router.get('/posts', middlewareCntroller.verifyToken, async (req, res) => {
             const dataPost = await PostsModule.find().skip(skipPost).limit(page_size).sort({ [sort]: sortty })
 
             if (!dataPost) {
-                return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
+                return res.status(400).json({ success: false, message: 'There are no posts yet' })
             }
 
             return res.status(200).json({ success: true, dataPost: dataPost })
         } catch (error) {
-            return res.status(500).json({ success: false, message: 'loi server ' + error })
+            return res.status(500).json({ success: false, message: 'Server Error ' + error })
         }
     } else if (page && page > 0 && page_size == undefined) {
         try {
@@ -108,12 +108,12 @@ router.get('/posts', middlewareCntroller.verifyToken, async (req, res) => {
             const dataPost = await PostsModule.find().skip(skipPost).limit(5).sort({ [sort]: sortty })
 
             if (!dataPost) {
-                return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
+                return res.status(400).json({ success: false, message: 'There are no posts yet' })
             }
 
             return res.status(200).json({ success: true, dataPost: dataPost })
         } catch (error) {
-            return res.status(500).json({ success: false, message: 'loi server ' + error })
+            return res.status(500).json({ success: false, message: 'Server Error ' + error })
         }
     } else {
         try {
@@ -123,12 +123,12 @@ router.get('/posts', middlewareCntroller.verifyToken, async (req, res) => {
             const dataPost = await PostsModule.find().skip(skipPost).limit(5).sort({ [sort]: sortty })
 
             if (!dataPost) {
-                return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
+                return res.status(400).json({ success: false, message: 'There are no posts yet' })
             }
 
             return res.status(200).json({ success: true, dataPost: dataPost })
         } catch (error) {
-            return res.status(500).json({ success: false, message: 'loi server ' + error })
+            return res.status(500).json({ success: false, message: 'Server Error ' + error })
         }
     }
 })
@@ -138,7 +138,7 @@ router.get('/all-posts', middlewareCntroller.verifyToken, async (req, res) => {
         const dataPost = await PostsModule.find()
 
         if (!dataPost) {
-            return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
+            return res.status(400).json({ success: false, message: 'There are no posts yet' })
         }
 
         return res.status(200).json({ success: true, dataPost: dataPost })
@@ -159,7 +159,7 @@ router.post('/post', upload.single('image'), middlewareCntroller.verifyTokenAndS
 
 
     if (!title || !content) {
-        return res.status(401).json({ success: false, message: 'thieu tieu de va noi dung' })
+        return res.status(401).json({ success: false, message: 'Missing title and content' })
     }
 
     try {
@@ -221,7 +221,7 @@ router.put('/post/:id', upload.single('image'),middlewareCntroller.verifyToken, 
     const NameImg = req.file
 
     if (!title || !content) {
-        return res.status(401).json({ success: false, message: 'thieu tieu de va noi dung' })
+        return res.status(401).json({ success: false, message: 'Missing title and content' })
     }
 
     try {
@@ -249,7 +249,7 @@ router.delete('/post/:id', middlewareCntroller.verifyToken, async (req, res) => 
         const data = await PostsModule.findById(id)
 
         if (!data) {
-            return res.status(400).json({ success: false, message: 'Bai viet khong ton tai' })
+            return res.status(400).json({ success: false, message: 'The article does not exist' })
         }
 
         if (idUser === data.UserId || role === 'admin' || role === 'qa-manager') {
@@ -264,13 +264,13 @@ router.delete('/post/:id', middlewareCntroller.verifyToken, async (req, res) => 
             //Del Comment cua bai Post
             await CommentModule.deleteMany({ idPost: id });
             //all good
-            return res.status(200).json({ success: true, message: 'xoa thanh cong' })
+            return res.status(200).json({ success: true, message: 'Delete successfully' })
         }
 
-        return res.status(400).json({ success: false, message: 'Bạn không đủ quyền để xóa' })
+        return res.status(400).json({ success: false, message: 'You are not authorized to delete' })
 
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' })
+        return res.status(500).json({ success: false, message: 'Server Error' })
     }
 })
 
@@ -280,7 +280,7 @@ router.get('/post/:id', middlewareCntroller.verifyToken, async (req, res) => {
     try {
         const dataPost = await PostsModule.findById(id)
         if (!dataPost) {
-            return res.status(400).json({ success: false, message: 'khong co bia viet nao' })
+            return res.status(400).json({ success: false, message: 'There are no posts yet' })
         }
 
         return res.status(200).json({ success: true, dataPost: dataPost })
@@ -332,7 +332,7 @@ router.get('/post-comment/:id', middlewareCntroller.verifyToken, async (req, res
         const commentData = await CommentModule.find({ idPost: id })
         return res.status(200).json({ success: true, message: commentData })
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' })
+        return res.status(500).json({ success: false, message: 'Server Error' })
     }
 })
 
@@ -346,7 +346,7 @@ router.get('/post-comment-my/:id', middlewareCntroller.verifyToken, async (req, 
         const commentData = await CommentModule.find({ $and: [{ idPost: id }, { idUser: idUser }] })
         return res.status(200).json({ success: true, message: commentData })
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' })
+        return res.status(500).json({ success: false, message: 'Server Error' })
     }
 })
 
@@ -361,7 +361,7 @@ router.post('/post-comment/:id', middlewareCntroller.verifyToken, async (req, re
     const email = req.user.email
 
     if (!comment) {
-        return res.status(401).json({ message: 'thieu noi dung binh luan' })
+        return res.status(401).json({ message: 'Comments are missing' })
     }
 
     try {
@@ -400,9 +400,9 @@ router.post('/post-comment/:id', middlewareCntroller.verifyToken, async (req, re
             }
         });
 
-        return res.status(200).json({ success: true, message: 'comment thanh cong' })
+        return res.status(200).json({ success: true, message: 'Successful comment' })
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' })
+        return res.status(500).json({ success: false, message: 'Server Error' })
     }
 })
 
@@ -418,10 +418,10 @@ router.put('/updata-comment/:id', middlewareCntroller.verifyToken, async (req, r
         const findComment = await CommentModule.findByIdAndUpdate({ _id: id }, { comment: comment })
 
         if (!findComment) {
-            return res.status(402).json({ success: false, message: 'Comment khong ton tai' })
+            return res.status(402).json({ success: false, message: 'Comment does not exist' })
         }
 
-        return res.status(200).json({ success: true, message: 'UpData Success' })
+        return res.status(200).json({ success: true, message: 'Update successful' })
 
     } catch (error) {
         return res.status(500).json({ success: false, message: 'Server Error' })
@@ -438,7 +438,7 @@ router.delete('/del-comment/:id', middlewareCntroller.verifyToken, async (req, r
         const findComment = await CommentModule.findOne({ _id: id })
 
         if (!findComment) {
-            return res.status(401).json({ success: false, message: 'comment khong ton tai' })
+            return res.status(401).json({ success: false, message: 'Comment does not exist' })
         }
 
         // if (idUser !== findComment.idUser) {
@@ -448,7 +448,7 @@ router.delete('/del-comment/:id', middlewareCntroller.verifyToken, async (req, r
         //Del comment
         await CommentModule.findByIdAndDelete(id)
 
-        return res.status(200).json({ success: true, message: 'del comment success' })
+        return res.status(200).json({ success: true, message: 'Comment deleted successfully' })
     } catch (error) {
         return res.status(500).json({ success: false, message: 'Server Error' })
     }
@@ -466,7 +466,7 @@ router.get('/post-vote/:id', middlewareCntroller.verifyToken, async (req, res) =
 
         return res.json(VoteData)
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' })
+        return res.status(500).json({ success: false, message: 'Server Error' })
     }
 })
 
@@ -488,7 +488,7 @@ router.post('/post-Like/:id', middlewareCntroller.verifyToken, async (req, res) 
             const Like = dataPost[0].Like - 1
             await PostsModule.findOneAndUpdate({ _id: id }, { Like: Like })
 
-            return res.status(200).json({ success: true, message: 'Bạn đã hủy Like' })
+            return res.status(200).json({ success: true, message: 'You canceled Like' })
         }
 
         if (CheckDataDisLike.length != 0) {
@@ -507,7 +507,7 @@ router.post('/post-Like/:id', middlewareCntroller.verifyToken, async (req, res) 
         const Like = dataPost[0].Like + 1
         await PostsModule.findOneAndUpdate({ _id: id }, { Like: Like })
 
-        return res.status(200).json({ success: true, message: 'Like thanh cong' })
+        return res.status(200).json({ success: true, message: 'Like successfully' })
     } catch (error) {
         return res.status(500).json({ success: false, message: 'Server Error' })
     }
@@ -531,7 +531,7 @@ router.post('/post-DisLike/:id', middlewareCntroller.verifyToken, async (req, re
             const DisLike = dataPost[0].DisLike - 1
             await PostsModule.findOneAndUpdate({ _id: id }, { DisLike: DisLike })
 
-            return res.status(200).json({ success: true, message: 'Bạn đã hủy Dislike' })
+            return res.status(200).json({ success: true, message: 'You canceled Dislike' })
         }
 
         if (CheckDataLike.length != 0) {
@@ -551,7 +551,7 @@ router.post('/post-DisLike/:id', middlewareCntroller.verifyToken, async (req, re
         const DisLike = dataPost[0].DisLike + 1
         await PostsModule.findOneAndUpdate({ _id: id }, { DisLike: DisLike })
 
-        return res.status(200).json({ success: true, message: 'Dislike thanh cong' })
+        return res.status(200).json({ success: true, message: 'Dislike curved bar' })
     } catch (error) {
         return res.status(500).json({ success: false, message: 'Server Error' })
     }
@@ -568,7 +568,7 @@ router.post('/post-view/:id', middlewareCntroller.verifyToken, async (req, res) 
         const CheckData = await ViewsModule.find({ UserId: idUser, PostId: id })
 
         if (CheckData.length != 0) {
-            return res.status(200).json({ success: true, message: 'Bạn đã view' })
+            return res.status(200).json({ success: true, message: 'You have viewed' })
         }
 
         const dataVote = await ViewsModule({ UserId: idUser, PostId: id, name: name })
@@ -578,9 +578,9 @@ router.post('/post-view/:id', middlewareCntroller.verifyToken, async (req, res) 
         const numbervote = dataPost[0].numberView + 1
         await PostsModule.findOneAndUpdate({ _id: id }, { numberView: numbervote })
 
-        return res.status(200).json({ success: true, message: 'view thanh cong' })
+        return res.status(200).json({ success: true, message: 'successful view' })
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'loi server' })
+        return res.status(500).json({ success: false, message: 'Server Error' })
     }
 })
 
