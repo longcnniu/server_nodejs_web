@@ -85,7 +85,7 @@ router.get('/category/:id', middlewareCntroller.verifyTokenAndQAAuth,async (req,
   
         return res.status(200).json({ success: true, data})
     } catch (error) {
-        res.json(error)
+        return res.status(500).json({ success: false, message: 'Server error' + error })
     }
   
   })
@@ -105,7 +105,7 @@ router.put('/category/:id', middlewareCntroller.verifyTokenAndQAAuth, async (req
   
         return res.status(200).json({ success: true, message: 'Update Successfull' })
     } catch (error) {
-        res.json(error)
+        return res.status(500).json({ success: false, message: 'Server error' + error })
     }
   })
 
@@ -121,7 +121,7 @@ router.delete('/category/:id', middlewareCntroller.verifyTokenAndQAAuth, async (
 
         return res.status(200).json({ success: true, message: 'Delete' })
     } catch (error) {
-        res.json(error)
+        return res.status(500).json({ success: false, message: 'Server error' + error })
     }
 })
 
