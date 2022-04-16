@@ -132,6 +132,7 @@ router.get('/posts', middlewareCntroller.verifyToken, async (req, res) => {
         }
     }
 })
+
 //get all post
 router.get('/all-posts', middlewareCntroller.verifyToken, async (req, res) => {
     try {
@@ -254,7 +255,6 @@ router.delete('/post/:id', middlewareCntroller.verifyToken, async (req, res) => 
 
         if (idUser === data.UserId || role === 'admin' || role === 'qa-manager') {
             await PostsModule.findByIdAndDelete(id)
-
             //Del Like cua bai Post
             await VotesModule.deleteMany({ PostId: id })
             //Del Dislike cua Post
