@@ -91,7 +91,7 @@ router.get('/posts', middlewareCntroller.verifyToken, async (req, res) => {
         try {
             var skipPost = (parseInt(page) - 1) * parseInt(page_size)
 
-            const dataPost = await PostsModule.find({isReview: true}).skip(skipPost).limit(page_size).sort({ [sort]: sortty })
+            const dataPost = await PostsModule.find({ isReview: true }).skip(skipPost).limit(page_size).sort({ [sort]: sortty })
 
             if (!dataPost) {
                 return res.status(400).json({ success: false, message: 'There are no posts yet' })
@@ -105,7 +105,7 @@ router.get('/posts', middlewareCntroller.verifyToken, async (req, res) => {
         try {
             var skipPost = (parseInt(page) - 1) * parseInt(5)
 
-            const dataPost = await PostsModule.find({isReview: true}).skip(skipPost).limit(5).sort({ [sort]: sortty })
+            const dataPost = await PostsModule.find({ isReview: true }).skip(skipPost).limit(5).sort({ [sort]: sortty })
 
             if (!dataPost) {
                 return res.status(400).json({ success: false, message: 'There are no posts yet' })
@@ -120,7 +120,7 @@ router.get('/posts', middlewareCntroller.verifyToken, async (req, res) => {
             const page = 1
             var skipPost = (page - 1) * 5
 
-            const dataPost = await PostsModule.find({isReview: true}).skip(skipPost).limit(5).sort({ [sort]: sortty })
+            const dataPost = await PostsModule.find({ isReview: true }).skip(skipPost).limit(5).sort({ [sort]: sortty })
 
             if (!dataPost) {
                 return res.status(400).json({ success: false, message: 'There are no posts yet' })
@@ -144,7 +144,7 @@ router.get('/posts-review', middlewareCntroller.verifyToken, async (req, res) =>
         try {
             var skipPost = (parseInt(page) - 1) * parseInt(page_size)
 
-            const dataPost = await PostsModule.find({isReview: false}).skip(skipPost).limit(page_size).sort({ [sort]: sortty })
+            const dataPost = await PostsModule.find({ isReview: false }).skip(skipPost).limit(page_size).sort({ [sort]: sortty })
 
             if (!dataPost) {
                 return res.status(400).json({ success: false, message: 'There are no posts yet' })
@@ -158,7 +158,7 @@ router.get('/posts-review', middlewareCntroller.verifyToken, async (req, res) =>
         try {
             var skipPost = (parseInt(page) - 1) * parseInt(5)
 
-            const dataPost = await PostsModule.find({isReview: false}).skip(skipPost).limit(5).sort({ [sort]: sortty })
+            const dataPost = await PostsModule.find({ isReview: false }).skip(skipPost).limit(5).sort({ [sort]: sortty })
 
             if (!dataPost) {
                 return res.status(400).json({ success: false, message: 'There are no posts yet' })
@@ -173,7 +173,7 @@ router.get('/posts-review', middlewareCntroller.verifyToken, async (req, res) =>
             const page = 1
             var skipPost = (page - 1) * 5
 
-            const dataPost = await PostsModule.find({isReview: false}).skip(skipPost).limit(5).sort({ [sort]: sortty })
+            const dataPost = await PostsModule.find({ isReview: false }).skip(skipPost).limit(5).sort({ [sort]: sortty })
 
             if (!dataPost) {
                 return res.status(400).json({ success: false, message: 'There are no posts yet' })
@@ -183,6 +183,23 @@ router.get('/posts-review', middlewareCntroller.verifyToken, async (req, res) =>
         } catch (error) {
             return res.status(500).json({ success: false, message: 'Server Error ' + error })
         }
+    }
+})
+
+//Xác nhận chấp nhận cho Post lên
+router.put('/posts-approve', middlewareCntroller.verifyToken, async (req, res) => {
+    const id = req.query.id
+
+    try {
+        const data = await PostsModule.findByIdAndUpdate({ _id: id }, { isReview: true })
+
+        if (!data) {
+            return res.status(401).json({ success: false, message: 'Update failed' })
+        }
+
+        res.status(200).json({ success: true, message: 'Update successful' })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Server Error ' + error })
     }
 })
 
@@ -265,7 +282,7 @@ router.post('/post', upload.single('image'), middlewareCntroller.verifyTokenAndS
 })
 
 //put bai
-router.put('/post/:id', upload.single('image'),middlewareCntroller.verifyToken, async (req, res) => {
+router.put('/post/:id', upload.single('image'), middlewareCntroller.verifyToken, async (req, res) => {
     const id = req.params.id
     const UserId = req.user.userId
     const name = req.user.name
@@ -280,10 +297,10 @@ router.put('/post/:id', upload.single('image'),middlewareCntroller.verifyToken, 
 
     try {
         if (NameImg === undefined) {
-            await PostsModule.findOneAndUpdate({_id:id},{UserId, name, title, content, category, NameImg: 'null', Department})
+            await PostsModule.findOneAndUpdate({ _id: id }, { UserId, name, title, content, category, NameImg: 'null', Department, isReview:false})
         } else {
             const TyFile = NameImg.mimetype.split('/')[0];
-            await PostsModule.findOneAndUpdate({_id:id},{UserId, name, title, content, category, NameImg: NameImg.filename, TyFile, Department})
+            await PostsModule.findOneAndUpdate({ _id: id }, { UserId, name, title, content, category, NameImg: NameImg.filename, TyFile, Department, isReview:false})
         }
 
         return res.status(200).json({ success: true, message: 'Updata Post successfully' })
