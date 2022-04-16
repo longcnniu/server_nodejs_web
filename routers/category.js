@@ -140,7 +140,6 @@ router.delete('/category/:id', middlewareCntroller.verifyTokenAndQAAuth, async (
         }
 
         await dateCategory.forEach(async function (data) {
-            console.log(data._id.valueOf());
             await PostsModule.findOneAndDelete({ _id: data._id.valueOf() })
             //Del Like cua bai Post
             await VotesModule.deleteMany({ PostId: data._id.valueOf() })

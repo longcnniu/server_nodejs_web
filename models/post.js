@@ -64,6 +64,11 @@ const PostsSchema = new Schema({
   Department: {
     type: String,
     query: true
+  },
+  isReview: {
+    type: Boolean,
+    query: true,
+    default: false
   }
 });
 
