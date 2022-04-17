@@ -308,6 +308,7 @@ router.put('/post/:id', upload.single('image'), middlewareCntroller.verifyToken,
         return res.status(500).json({ success: true, message: 'Server Error' })
     }
 })
+//
 
 //Del bai
 router.delete('/post/:id', middlewareCntroller.verifyToken, async (req, res) => {
