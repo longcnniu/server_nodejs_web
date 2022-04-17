@@ -303,7 +303,7 @@ router.put('/post/:id', upload.single('image'), middlewareCntroller.verifyToken,
             await PostsModule.findOneAndUpdate({ _id: id }, { UserId, name, title, content, category, NameImg: NameImg.filename, TyFile, Department, isReview:false})
         }
 
-        return res.status(200).json({ success: true, message: 'Updata Post successfully' })
+        return res.status(200).json({ success: true, message: 'The post has been updated, and will come to approve page pls wait'})
     } catch (error) {
         return res.status(500).json({ success: true, message: 'Server Error' })
     }
