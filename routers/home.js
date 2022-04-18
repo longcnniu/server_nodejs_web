@@ -243,37 +243,38 @@ router.post('/post', upload.single('image'), middlewareCntroller.verifyTokenAndS
             await savePost.save()
         }
 
-        // const data = await AccountModel.find({ role: ['admin', 'qa-manager'] })
+        // Totl send email
+        const data = await AccountModel.find({ role: ['admin', 'qa-manager'] })
 
-        // for (let i = 0; i < data.length; i++) {
-        //     //send email
-        //     var user = process.env.EMAIL;
-        //     var pass = process.env.PASS;
-        //     var EmaiTo = data[i].email;
+        for (let i = 0; i < data.length; i++) {
+            //send email
+            var user = process.env.EMAIL;
+            var pass = process.env.PASS;
+            var EmaiTo = data[i].email;
 
-        //     var transporter = nodemailer.createTransport({
-        //         service: 'gmail',
-        //         auth: {
-        //             user: user,
-        //             pass: pass
-        //         }
-        //     });
+            var transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: user,
+                    pass: pass
+                }
+            });
 
-        //     var mailOptions = {
-        //         from: user,
-        //         to: EmaiTo,
-        //         subject: 'Sending Email using Node.js',
-        //         html: `Thông báo có bài đăng mới từ Name: ${name} | Email: ${email}`
-        //     }
+            var mailOptions = {
+                from: user,
+                to: EmaiTo,
+                subject: 'Sending Email using Node.js',
+                html: `Thông báo có bài đăng mới từ Name: ${name} | Email: ${email}`
+            }
 
-        //     transporter.sendMail(mailOptions, function (error, info) {
-        //         if (error) {
-        //             console.log(error);
-        //         } else {
-        //             return res.status(200).json({ success: true, message: 'send Email successfully' })
-        //         }
-        //     });
-        // }
+            transporter.sendMail(mailOptions, function (error, info) {
+                if (error) {
+                    console.log(error);
+                } else {
+                    return res.status(200).json({ success: true, message: 'send Email successfully' })
+                }
+            });
+        }
 
         return res.status(200).json({ success: true, message: 'Created Post successfully' })
     } catch (error) {
@@ -297,13 +298,13 @@ router.put('/post/:id', upload.single('image'), middlewareCntroller.verifyToken,
 
     try {
         if (NameImg === undefined) {
-            await PostsModule.findOneAndUpdate({ _id: id }, { UserId, name, title, content, category, NameImg: 'null', Department, isReview:false})
+            await PostsModule.findOneAndUpdate({ _id: id }, { UserId, name, title, content, category, NameImg: 'null', Department, isReview: false })
         } else {
             const TyFile = NameImg.mimetype.split('/')[0];
-            await PostsModule.findOneAndUpdate({ _id: id }, { UserId, name, title, content, category, NameImg: NameImg.filename, TyFile, Department, isReview:false})
+            await PostsModule.findOneAndUpdate({ _id: id }, { UserId, name, title, content, category, NameImg: NameImg.filename, TyFile, Department, isReview: false })
         }
 
-        return res.status(200).json({ success: true, message: 'The post has been updated, and will come to approve page pls wait'})
+        return res.status(200).json({ success: true, message: 'The post has been updated, and will come to approve page pls wait' })
     } catch (error) {
         return res.status(500).json({ success: true, message: 'Server Error' })
     }
@@ -557,6 +558,8 @@ router.post('/post-Like/:id', middlewareCntroller.verifyToken, async (req, res) 
             //Trừ -1 vote
             const dataPost = await PostsModule.find({ _id: id })
             const Like = dataPost[0].Like - 1
+
+
             await PostsModule.findOneAndUpdate({ _id: id }, { Like: Like })
 
             return res.status(200).json({ success: true, message: 'You canceled Like' })
@@ -568,7 +571,9 @@ router.post('/post-Like/:id', middlewareCntroller.verifyToken, async (req, res) 
             //Trừ -1 Dislike
             const dataPost = await PostsModule.find({ _id: id })
             const DisLike = dataPost[0].DisLike - 1
+
             await PostsModule.findOneAndUpdate({ _id: id }, { DisLike: DisLike })
+
         }
 
         const dataVote = await VotesModule({ UserId: idUser, PostId: id, name: name })
@@ -600,7 +605,11 @@ router.post('/post-DisLike/:id', middlewareCntroller.verifyToken, async (req, re
             //Trừ -1 Dislike
             const dataPost = await PostsModule.find({ _id: id })
             const DisLike = dataPost[0].DisLike - 1
-            await PostsModule.findOneAndUpdate({ _id: id }, { DisLike: DisLike })
+            if (DisLike < 0) {
+                await PostsModule.findOneAndUpdate({ _id: id }, { DisLike: 0 })
+            } else {
+                await PostsModule.findOneAndUpdate({ _id: id }, { DisLike: DisLike })
+            }
 
             return res.status(200).json({ success: true, message: 'You canceled Dislike' })
         }
@@ -611,7 +620,12 @@ router.post('/post-DisLike/:id', middlewareCntroller.verifyToken, async (req, re
             //Trừ -1 vote
             const dataPost = await PostsModule.find({ _id: id })
             const Like = dataPost[0].Like - 1
-            await PostsModule.findOneAndUpdate({ _id: id }, { Like: Like })
+            if (Like < 0) {
+                await PostsModule.findOneAndUpdate({ _id: id }, { Like: 0 })
+            } else {
+                await PostsModule.findOneAndUpdate({ _id: id }, { Like: Like })
+            }
+
 
         }
 
